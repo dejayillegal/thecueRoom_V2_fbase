@@ -43,9 +43,6 @@ export default function DashboardLayout({
                   <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                     thecueRoom
                   </span>
-                  <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-                    Underground Music Community
-                  </span>
                 </div>
             </div>
             <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
