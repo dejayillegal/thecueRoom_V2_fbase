@@ -1,21 +1,22 @@
-
 'use client';
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Sparkles, ImageDown, Wand2, Download } from "lucide-react";
+import { Loader2, Sparkles, ImageDown, Wand2, Download, Pilcrow } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { handleCoverArtGeneration } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
 
 const styleSuggestions = [
     "Abstract Techno",
@@ -29,6 +30,9 @@ const styleSuggestions = [
 const coverArtSchema = z.object({
   prompt: z.string().min(10, { message: "Please enter a more descriptive prompt (at least 10 characters)." }),
   aspectRatio: z.enum(['1:1', '16:9', '9:16']).default('1:1'),
+  artistName: z.string().optional(),
+  albumName: z.string().optional(),
+  releaseLabel: z.string().optional(),
 });
 
 type CoverArtFormValues = z.infer<typeof coverArtSchema>;
@@ -43,6 +47,9 @@ export default function CoverArtClient() {
     defaultValues: {
       prompt: "",
       aspectRatio: "1:1",
+      artistName: "",
+      albumName: "",
+      releaseLabel: "",
     },
   });
 
@@ -95,7 +102,7 @@ export default function CoverArtClient() {
                 AI Cover Art Generator
               </CardTitle>
               <CardDescription>
-                Design striking visuals for your tracks and mixes. Describe your vision and let the AI bring it to life.
+                Design striking visuals for your tracks. Describe your vision and let thecueRoom's AI bring it to life.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -104,7 +111,7 @@ export default function CoverArtClient() {
                 name="prompt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Creative Prompt</FormLabel>
+                    <FormLabel>Creative Concept</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="e.g., A lone figure walking through a neon-lit, rainy alley in a futuristic city, abstract techno vibes"
@@ -126,7 +133,7 @@ export default function CoverArtClient() {
                       ))}
                   </div>
               </div>
-              <FormField
+               <FormField
                 control={form.control}
                 name="aspectRatio"
                 render={({ field }) => (
@@ -139,20 +146,64 @@ export default function CoverArtClient() {
                         onValueChange={field.onChange}
                         className="justify-start"
                       >
-                        <ToggleGroupItem value="1:1" aria-label="Square">
-                          1:1
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="16:9" aria-label="Landscape">
-                          16:9
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="9:16" aria-label="Portrait">
-                          9:16
-                        </ToggleGroupItem>
+                        <ToggleGroupItem value="1:1" aria-label="Square">1:1</ToggleGroupItem>
+                        <ToggleGroupItem value="16:9" aria-label="Landscape">16:9</ToggleGroupItem>
+                        <ToggleGroupItem value="9:16" aria-label="Portrait">9:16</ToggleGroupItem>
                       </ToggleGroup>
                     </FormControl>
                   </FormItem>
                 )}
               />
+              
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Pilcrow className="text-muted-foreground"/>
+                  <h3 className="text-lg font-medium text-muted-foreground">Optional Text Overlay</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">Add text to your cover art. The AI will integrate it artistically.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="artistName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Artist Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Aphex Twin" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="albumName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Album / Track Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Selected Ambient Works" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="releaseLabel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Release Label</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Warp Records" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+              </div>
+
+
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -187,7 +238,7 @@ export default function CoverArtClient() {
                     <div className="flex flex-col items-center gap-2 text-muted-foreground z-10 p-4 text-center">
                         <Loader2 className="h-10 w-10 animate-spin" />
                         <p>Evoking the underground...</p>
-                        <p className="text-xs">This can take up to 30 seconds.</p>
+                        <p className="text-xs">This can take up to 60 seconds.</p>
                     </div>
                 )}
                 {!isLoading && !generatedImage && (
@@ -214,7 +265,7 @@ export default function CoverArtClient() {
                 <Download /> Download Image
               </a>
             </Button>
-            <p className="text-xs text-muted-foreground text-center">Note: This is a placeholder image. In a real application, a high-resolution image would be generated.</p>
+            <p className="text-xs text-muted-foreground text-center">Note: Final image resolution may vary. Watermark is subtly placed.</p>
           </CardFooter>
         )}
       </Card>

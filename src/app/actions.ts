@@ -70,6 +70,9 @@ export async function handleSignup(data: unknown): Promise<ActionResult> {
 const coverArtSchema = z.object({
     prompt: z.string().min(5, "Prompt must be at least 5 characters long."),
     aspectRatio: z.enum(['1:1', '16:9', '9:16']),
+    artistName: z.string().optional(),
+    albumName: z.string().optional(),
+    releaseLabel: z.string().optional(),
 });
 
 type CoverArtResult = {
@@ -85,7 +88,7 @@ export async function handleCoverArtGeneration(data: unknown): Promise<CoverArtR
     if (!validationResult.success) {
         return {
             status: "error",
-            message: "Invalid form data. Please check your inputs.",
+            message: "Invalid form data. " + validationResult.error.errors.map(e => e.message).join(' '),
         };
     }
 
@@ -101,9 +104,10 @@ export async function handleCoverArtGeneration(data: unknown): Promise<CoverArtR
         };
     } catch (error) {
         console.error("Cover art generation failed:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred during image generation.";
         return {
             status: "error",
-            message: "An error occurred during image generation. Please try again later.",
+            message: errorMessage,
         };
     }
 }
