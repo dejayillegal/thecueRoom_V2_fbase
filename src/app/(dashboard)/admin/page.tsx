@@ -42,9 +42,9 @@ export default function AdminPage() {
   }, [toast]);
 
   const handleSaveConfig = async () => {
-     if (!imageModel) return;
+    if (!imageModel) return;
     try {
-      await setCoverArtConfig({ model: imageModel });
+      await setCoverArtConfig({ model: imageModel as "premium" | "free" });
       toast({
         title: "Configuration Saved",
         description: "Cover art generation model has been updated.",
