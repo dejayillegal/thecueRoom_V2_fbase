@@ -4,25 +4,23 @@ import NewsFeedClient from "@/components/news-feed-client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import React, { Suspense } from "react";
-import type { Article } from "@/feeds/types";
+import type { NewsItem } from "@/feeds/types";
 
-export const runtime = 'nodejs';
+export const revalidate = 0;
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 async function NewsFeed() {
-  let articles: Article[] = [];
+  let articles: NewsItem[] = [];
   try {
-    // Fetch articles on the server
     const response = await ingestNews({});
-    articles = response.articles as Article[];
+    articles = response.articles as NewsItem[];
   } catch (error) {
     console.error("Failed to ingest news feed:", error);
-    // Gracefully fail by returning an empty array.
-    // The error boundary and client component will handle the UI.
     articles = [];
   }
 
-  const categories = [...new Set(articles.map((article: Article) => article.category))];
+  const categories = [...new Set(articles.map((article: NewsItem) => article.category))];
   return <NewsFeedClient articles={articles} categories={categories} />;
 }
 

@@ -1,43 +1,33 @@
 
 import { z } from "zod";
 
-// Safe date preprocessor: any falsy/invalid becomes "now"
-const SafeDate = z.preprocess((v) => {
-  const d = v instanceof Date ? v : new Date(String(v));
-  return isNaN(+d) ? new Date() : d;
-}, z.date());
-
-export const ArticleSchema = z.object({
+export const NewsItemSchema = z.object({
   title: z.string().min(3),
   url: z.string().url(),
   source: z.string().min(2),
-  category: z.enum(["Music", "Industry", "Guides", "Global Underground"]),
-  region: z.enum(["India", "Asia", "Europe", "Global"]),
-  publishedAt: SafeDate,
-  image: z.string().url().optional(),  // if missing → simply omitted; never `undefined` when saved (see sanitizer)
-  summary: z.string().optional(),
+  category: z.string().min(2),
+  region: z.string().min(2),
+  publishedAt: z.coerce.date(), // accepts string/number/Date -> Date
+  image: z.string().url().nullable().optional(),
 });
-export type Article = z.infer<typeof ArticleSchema>;
 
-export const ArticlesSchema = z.array(ArticleSchema);
+export type NewsItem = z.infer<typeof NewsItemSchema>;
 
-export const FeedSourceSchema = z.object({
-  name: z.string(),
-  url: z.string(), // RSS or HTML index
-  category: z.enum(["Music","Industry","Guides","Global Underground"]),
-  region: z.enum(["India","Asia","Europe","Global"]),
+export const NewsSettingsSchema = z.object({
+  GLOBAL_TIMEOUT_MS: z.number().int().positive(),
+  SOURCE_TIMEOUT_MS: z.number().int().positive(),
+  FETCH_CONCURRENCY: z.number().int().min(1).max(16),
+  STALE_FALLBACK_MS: z.number().int().positive(),
+  MAX_PER_SOURCE: z.number().int().min(1).max(50),
 });
-export type FeedSource = z.infer<typeof FeedSourceSchema>;
 
-export const CustomFeedsSchema = z.record(
-  z.string(), // Category
-  z.record(
-    z.string(), // Region
-    z.array(z.object({ name: z.string(), url: z.string().url() }))
-  )
-);
+export type NewsSettings = z.infer<typeof NewsSettingsSchema>;
 
-export const IngestNewsInputSchema = z.object({ force: z.boolean().optional() });
-export type IngestNewsInput = z.infer<typeof IngestNewsInputSchema>;
-export const IngestNewsOutputSchema = z.object({ articles: ArticlesSchema });
-export type IngestNewsOutput = z.infer<typeof IngestNewsOutputSchema>;
+// This type is maintained for the Admin page client-side form
+export type RssFeed = {
+  category: string;
+  region: string;
+  name: string;
+  url: string;
+  notes?: string;
+};

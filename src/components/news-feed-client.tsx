@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import type { Article } from "@/feeds/types";
+import type { NewsItem } from "@/feeds/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { Globe, BookOpen, Music, IndianRupee, Podcast, Library, HardHat, Waypoints, Mic2 } from "lucide-react";
@@ -31,7 +31,7 @@ function getDeterministicId(str: string) {
     return Math.abs(hash);
 }
 
-export default function NewsFeedClient({ articles, categories }: { articles: Article[], categories: string[] }) {
+export default function NewsFeedClient({ articles, categories }: { articles: NewsItem[], categories: string[] }) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const filteredArticles = useMemo(() => {

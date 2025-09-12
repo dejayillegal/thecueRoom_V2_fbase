@@ -1,38 +1,54 @@
 
-import type { FeedSource } from "./types";
+import { db } from "@/lib/firebase-admin";
+import { NewsSettingsSchema, type NewsSettings } from "./types";
 
-// Changed from const to let to allow modification by feed management actions.
-export let FEEDS: FeedSource[] = [
-  // --- Music / India
-  { name: "Wild City", url: "https://wildcity.in/feed", category: "Music", region: "India" },
-  { name: "Rolling Stone India (Dance/Electronic)", url: "https://rollingstoneindia.com/music/feed/", category: "Music", region: "India" },
-  { name: "Homegrown", url: "https://homegrown.co.in/feed", category: "Music", region: "India" },
+const DEFAULTS: NewsSettings = {
+  GLOBAL_TIMEOUT_MS: 9000,
+  SOURCE_TIMEOUT_MS: 3500,
+  FETCH_CONCURRENCY: 4,
+  STALE_FALLBACK_MS: 21_600_000, // 6h
+  MAX_PER_SOURCE: 12,
+};
 
-  // --- Music / Global
-  { name: "Resident Advisor (News)", url: "https://ra.co/news", category: "Global Underground", region: "Global" }, // HTML (no RSS)
-  { name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global" },
-  { name: "DJ Mag", url: "https://djmag.com/rss.xml", category: "Music", region: "Global" },
-  { name: "FACT", url: "https://www.factmag.com/feed/", category: "Music", region: "Global" },
-  { name: "XLR8R", url: "https://xlr8r.com/feed/", category: "Music", region: "Global" },
-  { name: "Electronic Beats", url: "https://www.electronicbeats.net/feed/", category: "Music", region: "Global" },
+export async function getNewsSettings(): Promise<NewsSettings> {
+  try {
+    const snap = await db.collection("config").doc("news").get();
+    const raw = snap.exists ? snap.data() : {};
+    // Use partial parsing and merge with defaults for resilience
+    const parsed = NewsSettingsSchema.partial().parse(raw);
+    return { ...DEFAULTS, ...parsed };
+  } catch (error) {
+    console.error("Error fetching news settings, using defaults:", error);
+    return DEFAULTS;
+  }
+}
 
-  // --- Music / Europe
-  { name: "Crack Magazine", url: "https://crackmagazine.net/feed/", category: "Music", region: "Europe" },
-  { name: "Groove Magazine", url: "https://groove.de/feed/", category: "Music", region: "Europe" },
+export type Feed = {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+  region: string;
+  enabled: boolean;
+};
 
-  // --- Industry / Global
-  { name: "Attack Magazine", url: "https://www.attackmagazine.com/feed/", category: "Industry", region: "Global" },
-  { name: "CDM", url: "https://cdm.link/feed/", category: "Industry", region: "Global" },
-  { name: "MusicTech", url: "https://musictech.com/feed/", category: "Industry", region: "Global" },
-  { name: "Magnetic Magazine", url: "https://www.magneticmag.com/feed/", category: "Industry", region: "Global" },
-  { name: "Beatportal", url: "https://www.beatportal.com/feed/", category: "Industry", region: "Global" },
-
-  // --- Guides / Global
-  { name: "Ableton Blog", url: "https://www.ableton.com/en/blog/feed/", category: "Guides", region: "Global" },
-  { name: "Native Instruments Blog", url: "https://blog.native-instruments.com/feed/", category: "Guides", region: "Global" },
-  { name: "Bandcamp Daily", url: "https://daily.bandcamp.com/feed/", category: "Guides", region: "Global" },
-];
-
-export const MAX_PER_SOURCE = 10;           // per spec
-export const FETCH_TIMEOUT_MS = 6000;       // keep it snappy
-export const STALE_MS = 1000 * 60 * 30;     // 30 minutes cache
+export async function getEnabledFeeds(): Promise<Feed[]> {
+  try {
+    const col = db.collection("news_feeds");
+    const snap = await col.where("enabled", "==", true).get();
+    if (snap.empty) {
+        // Fallback to a default list if firestore is empty
+        return [
+             { id: "default-ra", name: "Resident Advisor (News)", url: "https://ra.co/news", category: "Global Underground", region: "Global", enabled: true },
+             { id: "default-mixmag", name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global", enabled: true }
+        ]
+    }
+    return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Feed, "id">) }));
+  } catch (error) {
+    console.error("Error fetching enabled feeds, using defaults:", error);
+     return [
+        { id: "default-ra", name: "Resident Advisor (News)", url: "https://ra.co/news", category: "Global Underground", region: "Global", enabled: true },
+        { id: "default-mixmag", name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global", enabled: true }
+    ]
+  }
+}
