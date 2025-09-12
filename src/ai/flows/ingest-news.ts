@@ -31,10 +31,10 @@ function withGlobalTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export const GLOBAL_INGEST_TIMEOUT_MS = Number(process.env.NEWS_GLOBAL_TIMEOUT_MS ?? 9000);
-export const STALE_FALLBACK_MS = Number(process.env.NEWS_STALE_FALLBACK_MS ?? 6 * 60 * 60 * 1000); // 6h
-
 export async function ingestNews(input: IngestNewsInput = {}): Promise<IngestNewsOutput> {
+  const GLOBAL_INGEST_TIMEOUT_MS = Number(process.env.NEWS_GLOBAL_TIMEOUT_MS ?? 9000);
+  const STALE_FALLBACK_MS = Number(process.env.NEWS_STALE_FALLBACK_MS ?? 6 * 60 * 60 * 1000); // 6h
+  
   // 1) Fast path: fresh cache
   try {
     if (!input?.force) {
