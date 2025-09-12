@@ -22,24 +22,26 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from "@/lib/firebase-client";
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 
-
-// In a real app, you would get this from your auth provider
-const isAdmin = true;
-const isLoggedIn = true;
 
 function LogoutButton() {
   const router = useRouter();
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/session", { method: "DELETE" });
+      await signOut(auth);
+      router.replace("/login");
+    } catch (error) {
+      console.error("Sign out error", error);
+    }
+  };
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={async () => {
-        await fetch("/api/auth/session", { method: "DELETE" });
-        await signOut(auth);
-        router.replace("/login");
-      }}
+      onClick={handleSignOut}
     >
       <LogOut className="mr-2 h-4 w-4" />
       Sign out
@@ -54,6 +56,24 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [user, setUser] = React.useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUser(user);
+        const tokenResult = await user.getIdTokenResult();
+        setIsAdmin(!!tokenResult.claims.admin);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
 
   return (
     <SidebarProvider>
@@ -61,7 +81,7 @@ export default function DashboardLayout({
           <SidebarRail />
           <SidebarContent>
             <SidebarHeader>
-                <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+                <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 group">
                 <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 <span className="font-normal tracking-tight group-data-[collapsible=icon]:hidden transition-transform duration-300 ease-in-out group-hover:-translate-y-0.5">
                   thecueRoom
@@ -165,8 +185,8 @@ export default function DashboardLayout({
                 </div>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                      <AvatarFallback>DJ</AvatarFallback>
+                      <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'User'} />
+                      <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                     <LogoutButton />
                 </div>

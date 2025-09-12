@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       maxAge,
     });
     cookies().set("tcr_auth", "1", {
-      httpOnly: true,
+      httpOnly: false, // Make this readable by client-side JS for basic UI checks
       secure: isProd,
       sameSite: "lax",
       path: "/",
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   cookies().set("__session", "", { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 0 });
-  cookies().set("tcr_auth", "", { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 0 });
+  cookies().set("tcr_auth", "", { httpOnly: false, secure: false, sameSite: "lax", path: "/", maxAge: 0 });
   return new Response(JSON.stringify({ ok: true }), {
     headers: { "content-type": "application/json" },
   });

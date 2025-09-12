@@ -5,14 +5,14 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   
-  const isDashboardRoute = url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/admin");
+  const isProtected = url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/admin");
 
-  if (isDashboardRoute) {
-    const hasAuthCookie = (req.headers.get("cookie") || "").includes("tcr_auth=1");
+  if (isProtected) {
+    // Check for the simple, non-HttpOnly cookie
+    const hasAuthCookie = req.cookies.get("tcr_auth")?.value === "1";
     if (!hasAuthCookie) {
-      const next = encodeURIComponent(url.pathname + url.search);
       const signInUrl = new URL("/login", url);
-      signInUrl.searchParams.set('next', next);
+      signInUrl.searchParams.set('next', url.pathname); // Pass the intended destination
       return NextResponse.redirect(signInUrl);
     }
   }
