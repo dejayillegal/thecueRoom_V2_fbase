@@ -1,16 +1,21 @@
 
+'use server';
+
 import { getApps, initializeApp, App } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, Firestore, FieldValue } from "firebase-admin/firestore";
 import type { Article } from "./types";
 
 let app: App;
+let db: Firestore;
+
 if (!getApps().length) {
   app = initializeApp(); // relies on default service account in Firebase Functions / local emulator env
+  db = getFirestore(app);
+  db.settings({ ignoreUndefinedProperties: true });
 } else {
   app = getApps()[0];
+  db = getFirestore(app);
 }
-const db = getFirestore(app);
-db.settings({ ignoreUndefinedProperties: true });
 
 
 export async function saveSourceSnapshot(sourceUrl: string, items: Article[]) {
