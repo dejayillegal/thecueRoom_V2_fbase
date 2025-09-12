@@ -15,13 +15,18 @@ import { getCoverArtConfig, setCoverArtConfig } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeleteFeedDialog from "@/components/delete-feed-dialog";
+import EditFeedDialog from "@/components/edit-feed-dialog";
 
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rssFeeds, setRssFeeds] = useState<RssFeed[]>(initialRssFeeds);
+  
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<RssFeed | null>(null);
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [feedToEdit, setFeedToEdit] = useState<RssFeed | null>(null);
 
   const { toast } = useToast();
 
@@ -79,6 +84,22 @@ export default function AdminPage() {
     setFeedToDelete(null);
   };
 
+  const handleEditClick = (feed: RssFeed) => {
+    setFeedToEdit(feed);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditConfirm = (updatedFeed: RssFeed) => {
+    if (updatedFeed) {
+      setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
+      toast({
+        title: "Feed Updated",
+        description: `"${updatedFeed.name}" has been updated.`,
+      });
+    }
+    setIsEditDialogOpen(false);
+    setFeedToEdit(null);
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -182,7 +203,7 @@ export default function AdminPage() {
                                 <TableCell className="py-2"><Badge variant="secondary">{feed.region}</Badge></TableCell>
                                 <TableCell className="text-right py-2">
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-2">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(feed)}>
                                             <Pencil className="h-4 w-4" />
                                         </Button>
                                         <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteClick(feed)}>
@@ -206,6 +227,14 @@ export default function AdminPage() {
         onConfirm={handleDeleteConfirm}
         feedName={feedToDelete?.name || ''}
       />
+      {feedToEdit && (
+        <EditFeedDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onConfirm={handleEditConfirm}
+          feed={feedToEdit}
+        />
+      )}
     </div>
   );
 }
