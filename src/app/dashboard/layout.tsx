@@ -48,50 +48,50 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/'}
+                isActive={pathname === '/dashboard'}
                 tooltip="Dashboard"
               >
-                <Link href="/">
+                <Link href="/dashboard">
                   <LayoutDashboard />
                   Dashboard
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/cover-art'} tooltip="Cover Art">
-                <Link href="/cover-art">
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
+                <Link href="/dashboard/cover-art">
                   <Image />
                   Cover Art
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/memes'} tooltip="Memes">
-                <Link href="/memes">
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard/memes'} tooltip="Memes">
+                <Link href="/dashboard/memes">
                   <Smile />
                   Memes
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/news'} tooltip="News">
-                <Link href="/news">
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
+                <Link href="/dashboard/news">
                   <Newspaper />
                   News
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/gigs'} tooltip="Gigs">
-                  <Link href="/gigs">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
+                  <Link href="/dashboard/gigs">
                     <CalendarDays />
                     Gigs
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/genres'} tooltip="Genres">
-                  <Link href="/genres">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/genres'} tooltip="Genres">
+                  <Link href="/dashboard/genres">
                     <Music />
                     Genres
                   </Link>
@@ -152,6 +152,12 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             {children}
         </main>
+        <footer className="p-4 md:p-6 lg:p-8 text-xs text-muted-foreground border-t">
+          <div className="container mx-auto text-center space-y-2">
+            <p>Content aggregated from trusted electronic music sources  • Data from Resident Advisor, Mixmag, Beatport, and more • Updated hourly • Links direct to original sources</p>
+            <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</p>
+          </div>
+        </footer>
       </SidebarInset>
     </SidebarProvider>
   );
