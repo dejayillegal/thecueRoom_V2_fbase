@@ -1,6 +1,16 @@
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import SignupForm from '@/components/signup-form';
+
 
 export default function Home() {
   return (
@@ -19,9 +29,20 @@ export default function Home() {
               </p>
             </div>
             <div className="flex gap-4">
-              <Button size="lg" asChild>
-                <Link href="/signup">Join the Community</Link>
-              </Button>
+               <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg">Join the Community</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Create your account</DialogTitle>
+                    <DialogDescription>
+                      Join the community. Your profile will be reviewed for verification.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SignupForm />
+                </DialogContent>
+              </Dialog>
               <Button size="lg" variant="outline">
                 Learn More
               </Button>
