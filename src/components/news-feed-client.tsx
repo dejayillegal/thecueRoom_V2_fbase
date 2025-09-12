@@ -88,7 +88,7 @@ export default function NewsFeedClient({ articles, categories }: { articles: Art
                     data-ai-hint="electronic music"
                   />
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">{article.title}</p>
+                    <p className="text-sm font-medium leading-none group-hover:text-primary">{article.title}</p>
                     <p className="text-sm text-muted-foreground">{article.source}</p>
                     <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground">
                         <Badge variant="secondary" className="flex items-center gap-1.5">
