@@ -1,6 +1,4 @@
 
-'use server';
-
 import { FEEDS } from '@/feeds/config';
 import type { RssFeed } from '@/lib/rss-feeds';
 
