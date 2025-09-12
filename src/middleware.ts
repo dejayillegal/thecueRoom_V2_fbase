@@ -6,7 +6,15 @@ export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   
   const protectedRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+    pathname.startsWith("/dashboard") || 
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/cover-art") ||
+    pathname.startsWith("/gigs") ||
+    pathname.startsWith("/genres") ||
+    pathname.startsWith("/memes") ||
+    pathname.startsWith("/news") ||
+    pathname.startsWith("/settings");
+
 
   if (protectedRoute) {
     const cookieHeader = req.headers.get("cookie") || "";
@@ -15,7 +23,8 @@ export function middleware(req: NextRequest) {
     const hasSession = cookieHeader.includes("__session=");
     if (!(hasFlag && hasSession)) {
       const redirectUrl = new URL("/login", req.url);
-      const nextPath = url.pathname + url.search;
+      // Construct the 'next' path correctly as a string
+      const nextPath = pathname + url.search;
       redirectUrl.searchParams.set("next", nextPath);
       return NextResponse.redirect(redirectUrl);
     }
