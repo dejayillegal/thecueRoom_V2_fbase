@@ -18,7 +18,6 @@ import {
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarRail } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 
@@ -107,6 +106,8 @@ export default function DashboardLayout({
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarMenu className="mt-auto">
             {isAdmin && (
                <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
