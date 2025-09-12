@@ -3,8 +3,10 @@ import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
+  const pathname = req.nextUrl.pathname;
+  
   const protectedRoute =
-    url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/admin");
+    pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
   if (protectedRoute) {
     const cookieHeader = req.headers.get("cookie") || "";
@@ -22,5 +24,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  // We check for protected routes inside the middleware now, 
+  // so the matcher can be broader. This covers all routes except for static assets and API routes.
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
