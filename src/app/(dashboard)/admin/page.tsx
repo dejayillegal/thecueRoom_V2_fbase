@@ -21,6 +21,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { requireAdmin } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 const newFeedSchema = z.object({
   category: z.string().min(1, 'Category is required.'),
@@ -31,7 +33,7 @@ const newFeedSchema = z.object({
 
 type NewFeedForm = z.infer<typeof newFeedSchema>;
 
-export default function AdminPage() {
+function AdminPanel() {
   const [imageModel, setImageModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rssFeeds, setRssFeeds] = useState<RssFeed[]>([]);
@@ -340,10 +342,19 @@ export default function AdminPage() {
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           onConfirm={handleEditConfirm}
-          feed={feedToedit}
+          feed={feedToEdit}
           isPending={isPending}
         />
       )}
     </div>
   );
+}
+
+export default async function AdminPage() {
+  try {
+    await requireAdmin();
+  } catch {
+    redirect('/login?next=/(dashboard)/admin');
+  }
+  return <AdminPanel />;
 }

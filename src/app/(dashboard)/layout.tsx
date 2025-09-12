@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -32,7 +33,7 @@ function LogoutButton() {
   const router = useRouter();
   return (
     <Button
-      variant="default"
+      variant="ghost"
       size="sm"
       onClick={async () => {
         await fetch("/api/auth/session", { method: "DELETE" });

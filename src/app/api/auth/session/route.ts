@@ -9,9 +9,8 @@ export async function POST(req: Request) {
     if (!idToken) return new Response("Missing idToken", { status: 400 });
 
     const isProd = process.env.NODE_ENV === "production";
-    const maxAge = 5 * 24 * 60 * 60; // seconds
+    const maxAge = 5 * 24 * 60 * 60; // 5 days (seconds)
 
-    // Firebase Hosting forwards __session reliably; works elsewhere too.
     cookies().set("__session", idToken, {
       httpOnly: true,
       secure: isProd,

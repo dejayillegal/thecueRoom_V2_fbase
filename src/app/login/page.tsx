@@ -1,34 +1,75 @@
 
 'use client';
 
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Logo from "@/components/logo";
-import Link from "next/link";
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { auth } from '@/lib/firebase-client';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import Logo from '@/components/logo';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-function SignIn({ next }: { next: string }) {
+export default function SignInPage() {
   const router = useRouter();
+  const sp = useSearchParams();
+  const next = sp.get('next') || '/dashboard';
+  const { toast } = useToast();
 
-  async function handleGoogle() {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  async function afterAuth() {
     try {
-      const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-      const idToken = await cred.user.getIdToken(true);
-
-      const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
+      if (!auth.currentUser) throw new Error("No user found after authentication.");
+      const idToken = await auth.currentUser.getIdToken(true);
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ idToken }),
       });
       if (!res.ok) {
-        console.error("session POST failed", await res.text());
-        return;
+        const errorBody = await res.text();
+        throw new Error(`Failed to create session: ${errorBody}`);
       }
       router.replace(next);
-    } catch (error) {
-        console.error("Sign in failed", error)
+    } catch (e: any) {
+      console.error("afterAuth error:", e);
+      toast({ variant: 'destructive', title: 'Session Error', description: 'Could not create a server session. Please try again.' });
+      setLoading(false);
+    }
+  }
+
+  async function onEmailSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      await afterAuth();
+    } catch (e: any) {
+      console.error("Email sign-in error:", e);
+      toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid credentials. Please try again.' });
+      setLoading(false);
+    }
+  }
+
+  async function onGoogle() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+      await afterAuth();
+    } catch (e: any) {
+      console.error("Google sign-in error:", e);
+      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: 'Could not sign in with Google. Please try again.' });
+      setLoading(false);
     }
   }
 
@@ -44,27 +85,49 @@ function SignIn({ next }: { next: string }) {
             </span>
           </Link>
         </div>
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <CardTitle className="text-2xl">Join thecueRoom</CardTitle>
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome Back</CardTitle>
             <CardDescription>
               Sign in to access the community and your tools.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={handleGoogle} className="w-full">
-                Continue with Google
+          <CardContent className="space-y-4">
+            <form onSubmit={onEmailSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+              </Button>
+            </form>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+            <Button variant="outline" onClick={onGoogle} disabled={loading} className="w-full">
+              {loading ? <Loader2 className="animate-spin" /> : 'Google'}
             </Button>
           </CardContent>
+          <CardFooter className="flex-col gap-2 text-sm">
+             <Link className="underline" href="/signup">
+                Don't have an account? Sign up
+             </Link>
+             <Link className="underline text-muted-foreground" href="/reset-password">
+                Forgot password?
+             </Link>
+          </CardFooter>
         </Card>
       </div>
     </div>
   );
-}
-
-// This is a server component that extracts the search param on the server
-// and passes it as a simple prop to the client component.
-export default function LoginPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const next = searchParams.next && typeof searchParams.next === 'string' ? searchParams.next : '/dashboard';
-  return <SignIn next={next} />;
 }
