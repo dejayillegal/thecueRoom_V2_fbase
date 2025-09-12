@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -33,9 +34,9 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <SidebarProvider>
-      <div className="relative min-h-screen w-full bg-background">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
+    <div className="relative min-h-screen w-full bg-background">
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]" />
+      <SidebarProvider>
           <Sidebar>
             <SidebarRail />
             <SidebarContent className="bg-background/80 backdrop-blur-lg">
@@ -166,7 +167,7 @@ export default function DashboardLayout({
               </footer>
             </div>
           </SidebarInset>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }
