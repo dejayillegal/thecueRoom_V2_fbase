@@ -127,11 +127,11 @@ export default function AdminPage() {
             <div className="grid gap-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Add New Feed</h3>
-                <form className="grid sm:grid-cols-3 gap-4">
+                <form className="grid md:grid-cols-3 gap-4">
                   <Input placeholder="Category (e.g., Music)" />
                   <Input placeholder="Region (e.g., Global)" />
                   <Input placeholder="Name (e.g., Resident Advisor)" />
-                  <Input placeholder="Feed URL" className="sm:col-span-2" />
+                  <Input placeholder="Feed URL" className="md:col-span-2" />
                   <Button type="submit">
                     <Plus />
                     Add Feed
@@ -141,7 +141,7 @@ export default function AdminPage() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Current Feeds</h3>
-                  <div className="border rounded-lg">
+                  <div className="border rounded-lg overflow-x-auto">
                       <Table>
                           <TableHeader>
                           <TableRow>
