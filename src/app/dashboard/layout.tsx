@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -9,13 +10,12 @@ import {
   Music,
   CalendarDays,
   Settings,
-  Shield,
   Image,
   Search,
   LogOut,
   Sparkles,
 } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -53,31 +53,31 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/cover-art" isActive={pathname === '/cover-art'} tooltip="Cover Art">
+              <SidebarMenuButton href="/dashboard/cover-art" isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
                 <Image />
                 Cover Art
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton href="/memes" isActive={pathname === '/memes'} tooltip="Memes">
+              <SidebarMenuButton href="/dashboard/memes" isActive={pathname === '/dashboard/memes'} tooltip="Memes">
                 <Smile />
                 Memes
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/news" isActive={pathname === '/news'} tooltip="News">
+              <SidebarMenuButton href="/dashboard/news" isActive={pathname === '/dashboard/news'} tooltip="News">
                 <Newspaper />
                 News
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/gigs" isActive={pathname === '/gigs'} tooltip="Gigs">
+                <SidebarMenuButton href="/dashboard/gigs" isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
                     <CalendarDays />
                     Gigs
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/genres" isActive={pathname === '/genres'} tooltip="Genres">
+                <SidebarMenuButton href="/dashboard/genres" isActive={pathname === '/dashboard/genres'} tooltip="Genres">
                     <Music />
                     Genres
                 </SidebarMenuButton>
@@ -85,7 +85,7 @@ export default function DashboardLayout({
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/settings" isActive={pathname === '/settings'} tooltip="Settings">
+              <SidebarMenuButton href="/dashboard/settings" isActive={pathname === '/dashboard/settings'} tooltip="Settings">
                 <Settings />
                 Settings
               </SidebarMenuButton>
