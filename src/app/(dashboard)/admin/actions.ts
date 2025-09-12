@@ -17,7 +17,7 @@ const SettingsSchema = z.object({
 export async function setNewsSettings(raw: unknown) {
   return safe(async () => {
     await requireAdmin();
-    const db = getDb();
+    const db = await getDb();
     if (!db) throw new Error("Database not available.");
     const input = SettingsSchema.parse(raw);
     await db.collection("config").doc("news").set(input, { merge: true });

@@ -67,20 +67,20 @@ const _inited = initAdmin();
 export const adminApp = _inited.app;
 export const adminAuth = _inited.app ? admin.auth(_inited.app) : null;
 
-export function getDb(): Firestore | null {
+export async function getDb(): Promise<Firestore | null> {
   if (globalThis.__tcrDbBroken) return null;
   return globalThis.__tcrDb ?? _inited.db;
 }
 
-export function getDbInitError(): Error | null {
+export async function getDbInitError(): Promise<Error | null> {
   return globalThis.__tcrDbInitError ?? null;
 }
 
-export function isDbAvailable(): boolean {
-  return !!getDb();
+export async function isDbAvailable(): Promise<boolean> {
+  return !!(await getDb());
 }
 
-export function markDbBroken() {
+export async function markDbBroken(): Promise<void> {
   globalThis.__tcrDbBroken = true;
   globalThis.__tcrDb = null;
 }

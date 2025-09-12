@@ -1,4 +1,5 @@
-import { getDb, markDbBroken } from "@/lib/firebase-admin";
+
+import { getDb, markDbBroken, isDbAvailable } from "@/lib/firebase-admin";
 import type { NewsItem } from "./types";
 
 function sanitize(item: Partial<NewsItem>): NewsItem {
@@ -14,7 +15,7 @@ function sanitize(item: Partial<NewsItem>): NewsItem {
 }
 
 export async function saveAggregate(items: NewsItem[]) {
-  const db = getDb();
+  const db = await getDb();
   if (!db) return;
   try {
     await db.collection("news").doc("aggregate").set(
@@ -22,12 +23,12 @@ export async function saveAggregate(items: NewsItem[]) {
       { merge: true }
     );
   } catch {
-    markDbBroken();
+    await markDbBroken();
   }
 }
 
 export async function readAggregateFresh(ttlMs: number): Promise<NewsItem[] | null> {
-  const db = getDb();
+  const db = await getDb();
   if (!db) return null;
   try {
     const snap = await db.collection("news").doc("aggregate").get();
@@ -37,7 +38,7 @@ export async function readAggregateFresh(ttlMs: number): Promise<NewsItem[] | nu
     if (Date.now() - ts.getTime() > ttlMs) return null;
     return (data.items as NewsItem[]) ?? null;
   } catch {
-    markDbBroken();
+    await markDbBroken();
     return null;
   }
 }

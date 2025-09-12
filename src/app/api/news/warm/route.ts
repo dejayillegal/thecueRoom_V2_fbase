@@ -17,8 +17,8 @@ export async function GET(req: Request) {
 
   const settings = await getNewsSettings();
   const feeds = await getEnabledFeeds();
-  const dbAvailable = isDbAvailable();
-  const dbError = getDbInitError();
+  const dbAvailable = await isDbAvailable();
+  const dbError = await getDbInitError();
   const agg = await readAggregateFresh(Number.MAX_SAFE_INTEGER);
 
   return NextResponse.json({

@@ -1,3 +1,4 @@
+
 import { getDb, isDbAvailable, markDbBroken } from "@/lib/firebase-admin";
 import { z } from "zod";
 
@@ -21,14 +22,15 @@ function settingsFromEnv(): NewsSettings {
 }
 
 export async function getNewsSettings(): Promise<NewsSettings> {
-  if (!isDbAvailable()) return settingsFromEnv();
-  const db = getDb()!;
+  if (!await isDbAvailable()) return settingsFromEnv();
+  const db = await getDb();
+  if (!db) return settingsFromEnv();
   try {
     const snap = await db.collection("config").doc("news").get();
     const raw = snap.exists ? snap.data() : {};
     return { ...settingsFromEnv(), ...(raw as Partial<NewsSettings>) };
   } catch {
-    markDbBroken();
+    await markDbBroken();
     return settingsFromEnv();
   }
 }
@@ -52,14 +54,15 @@ const DEFAULT_FEEDS: Feed[] = [
 ];
 
 export async function getEnabledFeeds(): Promise<Feed[]> {
-  if (!isDbAvailable()) return DEFAULT_FEEDS;
-  const db = getDb()!;
+  if (!await isDbAvailable()) return DEFAULT_FEEDS;
+  const db = await getDb();
+  if (!db) return DEFAULT_FEEDS;
   try {
     const snap = await db.collection("news_feeds").where("enabled", "==", true).get();
     if (snap.empty) return DEFAULT_FEEDS;
     return snap.docs.map(d => ({ id: d.id, ...(d.data() as Feed) }));
   } catch {
-    markDbBroken();
+    await markDbBroken();
     return DEFAULT_FEEDS;
   }
 }
