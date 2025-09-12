@@ -16,7 +16,7 @@ import {
   Sparkles,
   Shield,
 } from 'lucide-react';
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarRail } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <Sidebar>
+        <SidebarRail />
         <SidebarContent className="bg-background/80 backdrop-blur-lg">
           <SidebarHeader>
             <div className="flex items-center gap-2">
@@ -44,7 +45,7 @@ export default function DashboardLayout({
                 thecueRoom
                 </span>
             </div>
-            <SidebarTrigger />
+            <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
           </SidebarHeader>
           <SidebarMenu>
              <div className="relative w-full p-2">
