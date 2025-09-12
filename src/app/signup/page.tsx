@@ -71,8 +71,10 @@ export default function SignUpPage() {
       // Then, call our verification server action
       const verificationPayload = {
         email: userCredential.user.email,
+        password,
         profileUrls: 'google.com', // Placeholder until form has this
         contentPatterns: '', // Placeholder
+        newsletter: false, // Placeholder
       };
       const signupResult = await handleSignup(verificationPayload);
       setResult(signupResult);
@@ -135,7 +137,7 @@ export default function SignUpPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" placeholder="Password (min 6 chars)" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} disabled={loading} />
+                <Input id="password" placeholder="Password (min 8 chars)" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} disabled={loading} />
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? <Loader2 className="animate-spin" /> : 'Create Account'}

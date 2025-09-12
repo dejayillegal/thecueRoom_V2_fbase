@@ -14,7 +14,7 @@ import Logo from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-export default function SignInPage() {
+export default function LoginPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/dashboard';
