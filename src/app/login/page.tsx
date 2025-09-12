@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -13,6 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import Logo from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import type { FirebaseError } from 'firebase/app';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,11 +53,21 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const emailTrim = email.trim();
+      const pass = password; // don't trim passwords
+      await signInWithEmailAndPassword(auth, emailTrim, pass);
       await afterAuth();
     } catch (e: any) {
-      console.error("Email sign-in error:", e);
-      toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid credentials. Please try again.' });
+      const fe = e as FirebaseError;
+      console.error("Email sign-in error:", fe?.code, fe?.message, fe);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description:
+          fe?.code === 'auth/invalid-credential'
+            ? 'Invalid email or password, or the sign-in method is disabled.'
+            : fe?.message || 'Could not sign in. Please try again.',
+      });
       setLoading(false);
     }
   }
