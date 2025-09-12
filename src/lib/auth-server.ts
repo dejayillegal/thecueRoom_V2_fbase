@@ -12,7 +12,7 @@ export async function requireUser(): Promise<{ uid: string; email?: string; clai
   if (!token) throw new Error("Unauthenticated");
   if (!adminAuth) throw new Error("Auth service not available.");
 
-  const decoded = await adminAuth.verifyIdToken(token, true);
+  const decoded = await adminAuth().verifyIdToken(token, true);
   return { uid: decoded.uid, email: decoded.email ?? undefined, claims: decoded };
 }
 

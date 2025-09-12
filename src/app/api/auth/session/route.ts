@@ -1,62 +1,62 @@
-
-import "server-only";
+// DO NOT add 'use server' here.
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
+import { getAuth } from "firebase-admin/auth";
+import "@/lib/firebase-admin"; // singleton admin init
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const SESSION_COOKIE = "__session";
+const FLAG_COOKIE = "tcr_auth";
 
-// Cookie names
-const COOKIE_TOKEN = "__session";  // HttpOnly, server-verified
-const COOKIE_FLAG  = "tcr_auth";   // readable by middleware
-
-function cookieOpts(maxAgeSec: number) {
-  const secure = process.env.NODE_ENV === "production";
-  return {
-    httpOnly: true,
-    secure,
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: maxAgeSec,
-  };
+function isSecureReq() {
+  const h = headers();
+  const xfProto = h.get("x-forwarded-proto");
+  return xfProto === "https" || process.env.NODE_ENV === "production";
 }
 
 export async function POST(req: Request) {
   try {
     const { idToken } = await req.json();
-    if (!idToken) return NextResponse.json({ error: "idToken required" }, { status: 400 });
-    if (!adminAuth) return NextResponse.json({ error: "Auth service not available" }, { status: 500 });
+    if (!idToken) {
+      return NextResponse.json({ error: "missing idToken" }, { status: 400 });
+    }
 
-    // Verify token with Admin SDK (checks signature + project)
-    const decoded = await adminAuth.verifyIdToken(idToken, true);
+    // Verify the token to ensure it’s valid for this project.
+    const decoded = await getAuth().verifyIdToken(idToken, true);
+    const maxAge = Math.min(60 * 60 * 24 * 5, (decoded.exp! - decoded.iat!)); // <= 5 days
 
-    // Firebase ID tokens expire ~1 hour; pick a conservative cookie TTL
-    const maxAgeSec = 55 * 60;
+    const c = cookies();
+    const secure = isSecureReq();
 
-    const res = NextResponse.json({ ok: true, uid: decoded.uid, admin: !!(decoded as any).admin });
-
-    // HttpOnly token cookie for server guards
-    res.cookies.set(COOKIE_TOKEN, idToken, cookieOpts(maxAgeSec));
-
-    // Non-HttpOnly presence cookie for middleware
-    res.cookies.set(COOKIE_FLAG, "1", {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+    // HttpOnly token cookie for server verification
+    c.set(SESSION_COOKIE, idToken, {
+      httpOnly: true,
       sameSite: "lax",
+      secure,
       path: "/",
-      maxAge: maxAgeSec,
+      maxAge,
     });
 
-    return res;
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "verify failed" }, { status: 401 });
+    // Small non-HttpOnly flag so middleware can gate routes fast
+    c.set(FLAG_COOKIE, "1", {
+      sameSite: "lax",
+      secure,
+      path: "/",
+      maxAge,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: "invalid idToken" }, { status: 401 });
   }
 }
 
 export async function DELETE() {
-  const res = NextResponse.json({ ok: true });
-  // Clear both cookies
-  res.cookies.set("__session", "", { path: "/", maxAge: 0 });
-  res.cookies.set("tcr_auth", "", { path: "/", maxAge: 0 });
-  return res;
+  const c = cookies();
+  c.delete(SESSION_COOKIE);
+  c.delete(FLAG_COOKIE);
+  return NextResponse.json({ ok: true });
 }
+
+// These are fine in a route file (no 'use server' present)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
