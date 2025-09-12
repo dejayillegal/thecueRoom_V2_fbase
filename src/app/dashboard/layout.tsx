@@ -54,13 +54,13 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Cover Art">
+              <SidebarMenuButton href="/dashboard/cover-art" isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
                 <Image />
                 Cover Art
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Memes">
+              <SidebarMenuButton href="/dashboard/memes" isActive={pathname === '/dashboard/memes'} tooltip="Memes">
                 <Smile />
                 Memes
               </SidebarMenuButton>
@@ -72,13 +72,13 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="#" tooltip="Gigs">
+                <SidebarMenuButton href="/dashboard/gigs" isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
                     <CalendarDays />
                     Gigs
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="#" tooltip="Genres">
+                <SidebarMenuButton href="/dashboard/genres" isActive={pathname === '/dashboard/genres'} tooltip="Genres">
                     <Music />
                     Genres
                 </SidebarMenuButton>
@@ -86,7 +86,7 @@ export default function DashboardLayout({
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Settings">
+              <SidebarMenuButton href="/dashboard/settings" isActive={pathname === '/dashboard/settings'} tooltip="Settings">
                 <Settings />
                 Settings
               </SidebarMenuButton>
