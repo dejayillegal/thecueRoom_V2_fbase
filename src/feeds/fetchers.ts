@@ -1,7 +1,8 @@
 
 import { XMLParser } from "fast-xml-parser";
 import { setTimeout as delay } from "timers/promises";
-import { Article, ArticlesSchema, FeedSource } from "./types";
+import type { Article, FeedSource } from "./types";
+import { ArticlesSchema } from "./types";
 import removeMd from "remove-markdown";
 import { request } from "undici";
 
@@ -49,7 +50,7 @@ function normalizeToArticles(xml: any, source: FeedSource): Article[] {
       source: source.name,
       category: source.category,
       region: source.region,
-      publishedAt: new Date(it.pubDate ?? it.updated ?? Date.now()),
+      publishedAt: it.pubDate ?? it.updated ?? new Date(),
       summary: removeMd(String(it.description ?? it["content:encoded"] ?? "")).slice(0, 300),
       image: extractImage(it),
     }));
@@ -63,7 +64,7 @@ function normalizeToArticles(xml: any, source: FeedSource): Article[] {
       source: source.name,
       category: source.category,
       region: source.region,
-      publishedAt: new Date(e.updated ?? e.published ?? Date.now()),
+      publishedAt: e.updated ?? e.published ?? new Date(),
       summary: removeMd(String(e.summary ?? e.content ?? "")).slice(0, 300),
       image: undefined,
     }));
@@ -136,7 +137,7 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
     });
     return validated;
   } catch(e) {
-    console.error(`Failed to fetch ${source.url}`, e);
+    console.error(`Failed to fetch or parse ${source.url}`, e);
     // network or parse error → graceful fallback
     return cached?.items ?? [];
   }
@@ -144,13 +145,18 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
 
 // Retry with exponential backoff; also per-domain jitter to avoid thundering herds
 export async function fetchAllSources(sources: FeedSource[], maxPerSource = 10): Promise<Article[]> {
-  const promises = sources.map(source => fetchOneSource(source));
+  const promises = sources.map(s => fetchOneSource(s).catch(e => {
+      console.error(`Unhandled error in fetchOneSource for ${s.url}:`, e);
+      return [] as Article[]; // Return empty array on critical failure
+  }));
   const results = await Promise.allSettled(promises);
 
   const out: Article[] = [];
   results.forEach((result) => {
-    if (result.status === 'fulfilled') {
+    if (result.status === 'fulfilled' && result.value) {
       out.push(...result.value.slice(0, maxPerSource));
+    } else if (result.status === 'rejected') {
+        console.error("A feed fetcher promise was rejected:", result.reason);
     }
   });
 

@@ -10,6 +10,8 @@ if (!getApps().length) {
   app = getApps()[0];
 }
 const db = getFirestore(app);
+db.settings({ ignoreUndefinedProperties: true });
+
 
 export async function saveSourceSnapshot(sourceUrl: string, items: Article[]) {
   await db.collection("news_sources").doc(encodeURIComponent(sourceUrl)).set({
