@@ -101,7 +101,7 @@ function AdminPanel() {
         description: "Cover art generation model has been updated.",
         icon: <CheckCircle />,
       });
-    } catch (error) {
+    } catch (_error) {
        toast({
         variant: "destructive",
         title: "Error",

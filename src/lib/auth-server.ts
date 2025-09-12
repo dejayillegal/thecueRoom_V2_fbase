@@ -3,6 +3,12 @@ import "server-only";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase-admin";
 
+// Type for decoded token custom claims. Avoid using `any` on claims.
+interface Claims {
+  admin?: boolean;
+  [key: string]: unknown;
+}
+
 export async function requireUser() {
   const token = cookies().get("__session")?.value;
   if (!token) throw new Error("Unauthenticated");
@@ -20,6 +26,9 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const me = await requireUser();
-  if (!(me.claims as any)?.admin) throw new Error("Forbidden");
+  // Cast claims to a typed interface instead of using `any`.  This avoids
+  // lint errors and allows safe property access.
+  const claims = me.claims as unknown as Claims;
+  if (!claims.admin) throw new Error("Forbidden");
   return me;
 }

@@ -130,23 +130,26 @@ const generateCoverArtFlow = ai.defineFlow(
         revisedPrompt: revisedPrompt || "No revision needed." 
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI generation failed:", error);
-      
-      // Check if the error is due to billing
-      const isBillingError = error.message?.includes("billing");
-      
-      if (isBillingError) {
-          console.log("Billing error detected. Falling back to seeded placeholder generation.");
-          // Use the generate-thumbnail flow as a free fallback.
-          const fallbackResult = await generateThumbnail({ title: input.prompt });
-          return {
-              imageUrl: fallbackResult.imageUrl,
-              revisedPrompt: "Using free tier. Enable billing in Google Cloud or select Free tier in Admin panel for advanced AI generation."
-          };
+      // Narrow the error type. The error instance may not always be an Error.
+      let isBillingError = false;
+      if (error instanceof Error) {
+        isBillingError = error.message?.includes("billing") ?? false;
+      } else if (typeof error === "string") {
+        isBillingError = error.toLowerCase().includes("billing");
       }
-
-      // For other errors, re-throw to be handled by the action
+      if (isBillingError) {
+        console.log("Billing error detected. Falling back to seeded placeholder generation.");
+        // Use the generate-thumbnail flow as a free fallback.
+        const fallbackResult = await generateThumbnail({ title: input.prompt });
+        return {
+          imageUrl: fallbackResult.imageUrl,
+          revisedPrompt:
+            "Using free tier. Enable billing in Google Cloud or select Free tier in Admin panel for advanced AI generation.",
+        };
+      }
+      // For other errors, re-throw to be handled by the action.
       throw error;
     }
   }
