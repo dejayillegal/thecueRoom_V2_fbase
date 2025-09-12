@@ -60,77 +60,85 @@ const generateCoverArtFlow = ai.defineFlow(
     outputSchema: GenerateCoverArtOutputSchema,
   },
   async (input) => {
-    // NOTE: The following section is commented out to prevent API errors related to billing.
-    // To enable real image generation, you must enable billing for your project in the Google Cloud Console
-    // and then uncomment the code below.
+    try {
+      // Step 1: Have an LLM act as an "art director" to expand the user's prompt
+      const directorResponse = await artDirectorPrompt({ prompt: input.prompt });
+      const revisedPrompt = directorResponse.text;
 
-    // // Step 1: Have an LLM act as an "art director" to expand the user's prompt
-    // const directorResponse = await artDirectorPrompt({ prompt: input.prompt });
-    // const revisedPrompt = directorResponse.text;
+      // Step 2: Use the detailed prompt to generate the base image
+      const { media: baseImage } = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
+        prompt: revisedPrompt,
+        config: {
+          aspectRatio: input.aspectRatio,
+        }
+      });
 
-    // // Step 2: Use the detailed prompt to generate the base image
-    // const { media: baseImage } = await ai.generate({
-    //   model: 'googleai/imagen-4.0-fast-generate-001',
-    //   prompt: revisedPrompt,
-    //   config: {
-    //     aspectRatio: input.aspectRatio,
-    //   }
-    // });
+      if (!baseImage?.url) {
+        throw new Error("Base image generation failed.");
+      }
 
-    // if (!baseImage?.url) {
-    //   throw new Error("Base image generation failed.");
-    // }
+      // Step 3: If text is provided, use a multimodal model to add text and watermark
+      const hasText = input.artistName || input.albumName || input.releaseLabel;
+      let finalImageUrl = baseImage.url;
 
-    // // Step 3: If text is provided, use a multimodal model to add text and watermark
-    // const hasText = input.artistName || input.albumName || input.releaseLabel;
-    // if (hasText) {
-    //   const textPromptParts = [
-    //     { media: { url: baseImage.url } },
-    //     { text: `You are a graphic designer for an underground music label. Your task is to add text to this album cover in a way that is artistic, subtle, and integrated with the existing abstract artwork. Adhere to these rules:
-    //       - The typography should be clean, minimalist, and modern. San-serif fonts are preferred.
-    //       - Do NOT obscure the main focal point of the artwork. Place the text thoughtfully in areas of negative space.
-    //       - The text color should complement the artwork's palette. It can be white, a muted tone from the image, or the artwork's accent color.
-    //       - Add a very small, subtle, semi-transparent watermark in the bottom right corner that says: "thecueRoom AI". Make it discreet and professional.`},
-    //   ];
+      if (hasText) {
+        const textPromptParts = [
+          { media: { url: baseImage.url } },
+          { text: `You are a graphic designer for an underground music label. Your task is to add text to this album cover in a way that is artistic, subtle, and integrated with the existing abstract artwork. Adhere to these rules:
+            - The typography should be clean, minimalist, and modern. San-serif fonts are preferred.
+            - Do NOT obscure the main focal point of the artwork. Place the text thoughtfully in areas of negative space.
+            - The text color should complement the artwork's palette. It can be white, a muted tone from the image, or the artwork's accent color.
+            - Add a very small, subtle, semi-transparent watermark in the bottom right corner that says: "thecueRoom AI". Make it discreet and professional.`},
+        ];
 
-    //   if (input.artistName) textPromptParts.push({ text: `Artist Name: ${input.artistName}` });
-    //   if (input.albumName) textPromptParts.push({ text: `Album/Track Name: ${input.albumName}` });
-    //   if (input.releaseLabel) textPromptParts.push({ text: `Label: ${input.releaseLabel}` });
+        if (input.artistName) textPromptParts.push({ text: `Artist Name: ${input.artistName}` });
+        if (input.albumName) textPromptParts.push({ text: `Album/Track Name: ${input.albumName}` });
+        if (input.releaseLabel) textPromptParts.push({ text: `Label: ${input.releaseLabel}` });
+        
+        textPromptParts.push({text: "Apply the text and watermark as requested."})
+
+        const { media: finalImage } = await ai.generate({
+            model: 'googleai/gemini-2.5-flash-image-preview',
+            prompt: textPromptParts,
+            config: {
+                responseModalities: ['IMAGE'],
+            },
+        });
+
+        if (!finalImage?.url) {
+          // If text addition fails, we can still return the base image
+          console.warn("Failed to add text and watermark; returning base image.");
+        } else {
+          finalImageUrl = finalImage.url;
+        }
+      }
       
-    //   textPromptParts.push({text: "Apply the text and watermark as requested."})
+      return { 
+        imageUrl: finalImageUrl,
+        revisedPrompt: revisedPrompt || "No revision needed." 
+      };
 
-    //   const { media: finalImage } = await ai.generate({
-    //       model: 'googleai/gemini-2.5-flash-image-preview',
-    //       prompt: textPromptParts,
-    //       config: {
-    //           responseModalities: ['IMAGE'],
-    //       },
-    //   });
+    } catch (error: any) {
+        console.error("AI generation failed:", error.message);
 
-    //   if (!finalImage?.url) {
-    //     throw new Error("Failed to add text and watermark to the image.");
-    //   }
+        // Check if the error is due to billing
+        const isBillingError = error.message && error.message.includes("Imagen API is only accessible to billed users");
+        
+        if (isBillingError) {
+            // Fallback to placeholder image generation if billing is not enabled
+            console.log("Billing error detected. Falling back to placeholder image generation.");
+            const imageSeed = input.prompt.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            const [width, height] = input.aspectRatio === '16:9' ? [640, 360] : input.aspectRatio === '9:16' ? [360, 640] : [600, 600];
 
-    //    return { 
-    //     imageUrl: finalImage.url,
-    //     revisedPrompt: revisedPrompt || "No revision needed." 
-    //   };
+            return {
+                imageUrl: `https://picsum.photos/seed/${imageSeed}/${width}/${height}`,
+                revisedPrompt: "Placeholder generated. Enable billing in Google Cloud to use Imagen for real cover art."
+            };
+        }
 
-    // }
-    
-    // // If no text, return the base image
-    // return { 
-    //   imageUrl: baseImage.url,
-    //   revisedPrompt: revisedPrompt || "No revision needed." 
-    // };
-
-    // Fallback to placeholder image generation
-    const imageSeed = input.prompt.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const [width, height] = input.aspectRatio === '16:9' ? [640, 360] : input.aspectRatio === '9:16' ? [360, 640] : [600, 600];
-
-    return {
-      imageUrl: `https://picsum.photos/seed/${imageSeed}/${width}/${height}`,
-      revisedPrompt: "Placeholder generated. Enable billing in Google Cloud to use Imagen for real cover art."
-    };
+        // For other errors, re-throw to be handled by the action
+        throw error;
+    }
   }
 );
