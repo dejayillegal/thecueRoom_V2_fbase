@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getFeeds as getFeedsFromStore, updateFeedInStore, deleteFeedFromStore, addFeedToStore } from '@/lib/feed-store';
+import { getFeedsFromStore, updateFeedInStore, deleteFeedFromStore, addFeedToStore } from '@/lib/feed-store';
 import { RssFeed } from '@/lib/rss-feeds';
 import { revalidatePath } from 'next/cache';
 

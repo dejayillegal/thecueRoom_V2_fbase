@@ -16,7 +16,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeleteFeedDialog from "@/components/delete-feed-dialog";
 import EditFeedDialog from "@/components/edit-feed-dialog";
-import { getFeeds, deleteFeed, updateFeed } from "@/app/feeds/actions";
+import { getFeeds, deleteFeed, updateFeed, addFeed } from "@/app/feeds/actions";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+
+const newFeedSchema = z.object({
+  category: z.string().min(1, 'Category is required.'),
+  region: z.string().min(1, 'Region is required.'),
+  name: z.string().min(1, 'Name is required.'),
+  url: z.string().url('Must be a valid URL.'),
+});
+
+type NewFeedForm = z.infer<typeof newFeedSchema>;
 
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
@@ -30,6 +43,16 @@ export default function AdminPage() {
   const [feedToEdit, setFeedToEdit] = useState<RssFeed | null>(null);
 
   const { toast } = useToast();
+
+  const newFeedForm = useForm<NewFeedForm>({
+    resolver: zodResolver(newFeedSchema),
+    defaultValues: {
+      category: '',
+      region: '',
+      name: '',
+      url: '',
+    }
+  });
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -75,6 +98,30 @@ export default function AdminPage() {
       });
     }
   };
+
+  const handleAddFeed = async (data: NewFeedForm) => {
+    try {
+      const result = await addFeed(data);
+      if (result.success) {
+        toast({
+          title: "Feed Added",
+          description: `"${data.name}" has been added.`,
+          icon: <CheckCircle />,
+        });
+        newFeedForm.reset();
+        await fetchAllData();
+      } else {
+        throw new Error(result.error || "Server action failed.");
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error Adding Feed",
+        description: `${error instanceof Error ? error.message : 'An unknown error occurred.'}`,
+        icon: <XCircle />,
+      });
+    }
+  }
 
   const handleDeleteClick = (feed: RssFeed) => {
     setFeedToDelete(feed);
@@ -211,16 +258,26 @@ export default function AdminPage() {
             <div className="grid gap-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Add New Feed</h3>
-                <form className="space-y-4">
-                  <Input placeholder="Category (e.g., Music)" />
-                  <Input placeholder="Region (e.g., Global)" />
-                  <Input placeholder="Name (e.g., Resident Advisor)" />
-                  <Input placeholder="Feed URL" />
-                  <Button type="submit" className="w-full">
-                    <Plus />
-                    Add Feed
-                  </Button>
-                </form>
+                <Form {...newFeedForm}>
+                  <form onSubmit={newFeedForm.handleSubmit(handleAddFeed)} className="space-y-4">
+                    <FormField control={newFeedForm.control} name="category" render={({ field }) => (
+                      <FormItem><FormControl><Input placeholder="Category (e.g., Music)" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={newFeedForm.control} name="region" render={({ field }) => (
+                      <FormItem><FormControl><Input placeholder="Region (e.g., Global)" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={newFeedForm.control} name="name" render={({ field }) => (
+                      <FormItem><FormControl><Input placeholder="Name (e.g., Resident Advisor)" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={newFeedForm.control} name="url" render={({ field }) => (
+                      <FormItem><FormControl><Input placeholder="Feed URL" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <Button type="submit" className="w-full" disabled={newFeedForm.formState.isSubmitting}>
+                      <Plus />
+                      Add Feed
+                    </Button>
+                  </form>
+                </Form>
               </div>
 
               <div className="space-y-4">
