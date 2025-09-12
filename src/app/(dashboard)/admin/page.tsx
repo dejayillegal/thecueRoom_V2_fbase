@@ -120,7 +120,7 @@ export default function AdminPage() {
           <CardTitle>RSS Feed Management</CardTitle>
           <CardDescription>
             Add and review the RSS feeds used for the news ingestion flow.
-          </Description>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6">
