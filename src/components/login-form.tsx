@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, LogIn } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,18 +44,28 @@ export default function LoginForm() {
   } = form;
 
   const onSubmit = async (data: LoginFormValues) => {
-    // NOTE: This is a placeholder for actual login logic.
-    // In a real app, you'd call your authentication service here.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (data.email === "dejayillegal@gmail.com" && data.password === "Closer@82") {
+    try {
+      const auth = getAuth();
+      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+      
+      const idToken = await userCredential.user.getIdToken(true);
+      
+      await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
-      router.push('/dashboard');
-    } else {
-      toast({
+
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+
+    } catch (error) {
+       toast({
         variant: "destructive",
         title: "Login Failed",
         description: "Invalid credentials. Please try again.",

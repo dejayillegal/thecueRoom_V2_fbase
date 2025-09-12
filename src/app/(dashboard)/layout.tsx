@@ -19,11 +19,31 @@ import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader
 import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { getAuth, signOut } from 'firebase/auth';
 
 // In a real app, you would get this from your auth provider
 const isAdmin = true;
 const isLoggedIn = true;
+
+function LogoutButton() {
+  const router = useRouter();
+  return (
+    <Button
+      variant="default"
+      size="sm"
+      onClick={async () => {
+        await fetch("/api/auth/session", { method: "DELETE" });
+        await signOut(getAuth());
+        router.replace("/login");
+      }}
+    >
+      <LogOut className="mr-2 h-4 w-4" />
+      Sign out
+    </Button>
+  );
+}
+
 
 export default function DashboardLayout({
   children,
@@ -145,12 +165,7 @@ export default function DashboardLayout({
                       <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                       <AvatarFallback>DJ</AvatarFallback>
                   </Avatar>
-                    <Button variant="default" size="sm" asChild>
-                    <Link href="/">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </Link>
-                  </Button>
+                    <LogoutButton />
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
