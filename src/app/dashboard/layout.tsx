@@ -39,9 +39,14 @@ export default function DashboardLayout({
           <SidebarHeader>
             <div className="flex items-center gap-2">
                 <Logo className="h-8 w-auto text-foreground" />
-                <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
-                thecueRoom
-                </span>
+                <div className="flex flex-col">
+                  <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                    thecueRoom
+                  </span>
+                  <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                    Underground Music Community
+                  </span>
+                </div>
             </div>
             <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
           </SidebarHeader>
