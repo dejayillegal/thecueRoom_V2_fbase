@@ -129,12 +129,12 @@ export default function AdminPage() {
             <div className="grid gap-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Add New Feed</h3>
-                <form className="grid sm:grid-cols-2 gap-4">
+                <form className="space-y-4">
                   <Input placeholder="Category (e.g., Music)" />
                   <Input placeholder="Region (e.g., Global)" />
-                  <Input placeholder="Name (e.g., Resident Advisor)" className="col-span-2" />
-                  <Input placeholder="Feed URL" className="col-span-2" />
-                  <Button type="submit" className="sm:col-span-2">
+                  <Input placeholder="Name (e.g., Resident Advisor)" />
+                  <Input placeholder="Feed URL" />
+                  <Button type="submit" className="w-full">
                     <Plus />
                     Add Feed
                   </Button>
