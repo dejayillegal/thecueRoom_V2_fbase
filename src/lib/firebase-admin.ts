@@ -6,43 +6,57 @@ import { getFirestore } from "firebase-admin/firestore";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __tcrAdminApp: App | undefined;
+  var __tcrAdminApp: App | null | undefined;
   // eslint-disable-next-line no-var
-  var __tcrDb: Firestore | undefined;
+  var __tcrDb: Firestore | null | undefined;
   // eslint-disable-next-line no-var
   var __tcrDbConfigured: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __tcrDbInitError: Error | null | undefined;
 }
 
-const app =
-  globalThis.__tcrAdminApp ??
-  (() => {
-    const a =
-      getApps()[0] ??
-      initializeApp({
-        credential: process.env.FIREBASE_SERVICE_ACCOUNT
-          ? cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
-          : applicationDefault(),
-      });
-    globalThis.__tcrAdminApp = a;
-    return a;
-  })();
-
-const db =
-  globalThis.__tcrDb ??
-  (() => {
-    const d = getFirestore(app);
-    globalThis.__tcrDb = d;
-    return d;
-  })();
-
-// Try to set once; ignore if already set/used elsewhere.
-if (!globalThis.__tcrDbConfigured) {
+// Try to init Admin SDK; if it fails, remember the failure and run without Firestore.
+function initAdmin(): { app: App | null; db: Firestore | null } {
   try {
-    db.settings({ ignoreUndefinedProperties: true });
-  } catch {
-    // If settings() was already called or Firestore was used, ignore.
+    const app =
+      globalThis.__tcrAdminApp ??
+      (getApps()[0] ??
+        initializeApp({
+          credential: process.env.FIREBASE_SERVICE_ACCOUNT
+            ? cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
+            : applicationDefault(),
+        }));
+    globalThis.__tcrAdminApp = app;
+
+    const db = globalThis.__tcrDb ?? getFirestore(app);
+    globalThis.__tcrDb = db;
+
+    if (!globalThis.__tcrDbConfigured) {
+      try {
+        db.settings({ ignoreUndefinedProperties: true });
+      } catch {
+        /* settings can only be called once; ignore repeat/late calls */
+      }
+      globalThis.__tcrDbConfigured = true;
+    }
+    globalThis.__tcrDbInitError = null;
+    return { app, db };
+  } catch (e: any) {
+    globalThis.__tcrDbInitError = e;
+    globalThis.__tcrAdminApp = null;
+    globalThis.__tcrDb = null;
+    return { app: null, db: null };
   }
-  globalThis.__tcrDbConfigured = true;
 }
 
-export { db };
+const { db: _db } = initAdmin();
+
+export function getDb(): Firestore | null {
+  return globalThis.__tcrDb ?? _db ?? null;
+}
+export function isDbAvailable(): boolean {
+  return !!getDb();
+}
+export function getDbInitError(): Error | null {
+  return globalThis.__tcrDbInitError ?? null;
+}

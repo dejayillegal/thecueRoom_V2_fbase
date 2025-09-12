@@ -1,54 +1,73 @@
+import { getDb, isDbAvailable } from "@/lib/firebase-admin";
+import { z } from "zod";
 
-import { db } from "@/lib/firebase-admin";
-import { NewsSettingsSchema, type NewsSettings } from "./types";
+export const NewsSettingsSchema = z.object({
+  GLOBAL_TIMEOUT_MS: z.number().int().positive().default(9000),
+  SOURCE_TIMEOUT_MS: z.number().int().positive().default(3500),
+  FETCH_CONCURRENCY: z.number().int().min(1).max(16).default(4),
+  STALE_FALLBACK_MS: z.number().int().positive().default(21_600_000), // 6h
+  MAX_PER_SOURCE: z.number().int().min(1).max(50).default(12),
+});
+export type NewsSettings = z.infer<typeof NewsSettingsSchema>;
 
-const DEFAULTS: NewsSettings = {
-  GLOBAL_TIMEOUT_MS: 9000,
-  SOURCE_TIMEOUT_MS: 3500,
-  FETCH_CONCURRENCY: 4,
-  STALE_FALLBACK_MS: 21_600_000, // 6h
-  MAX_PER_SOURCE: 12,
-};
+// Pull from env first; fall back to defaults
+function settingsFromEnv(): NewsSettings {
+  return NewsSettingsSchema.parse({
+    GLOBAL_TIMEOUT_MS: Number(process.env.NEWS_GLOBAL_TIMEOUT_MS) || undefined,
+    SOURCE_TIMEOUT_MS: Number(process.env.NEWS_SOURCE_TIMEOUT_MS) || undefined,
+    FETCH_CONCURRENCY: Number(process.env.NEWS_FETCH_CONCURRENCY) || undefined,
+    STALE_FALLBACK_MS: Number(process.env.NEWS_STALE_FALLBACK_MS) || undefined,
+    MAX_PER_SOURCE: Number(process.env.NEWS_MAX_PER_SOURCE) || undefined,
+  });
+}
 
 export async function getNewsSettings(): Promise<NewsSettings> {
+  // If Firestore isn’t usable, return env/defaults instantly.
+  if (!isDbAvailable()) return settingsFromEnv();
+
+  const db = getDb()!;
   try {
     const snap = await db.collection("config").doc("news").get();
     const raw = snap.exists ? snap.data() : {};
-    // Use partial parsing and merge with defaults for resilience
-    const parsed = NewsSettingsSchema.partial().parse(raw);
-    return { ...DEFAULTS, ...parsed };
-  } catch (error) {
-    console.error("Error fetching news settings, using defaults:", error);
-    return DEFAULTS;
+    // Merge Firestore values over env/defaults
+    return NewsSettingsSchema.merge(NewsSettingsSchema.partial()).parse({
+      ...settingsFromEnv(),
+      ...raw,
+    });
+  } catch {
+    // On any read/ADC error, don’t throw — use env/defaults.
+    return settingsFromEnv();
   }
 }
 
 export type Feed = {
-  id: string;
+  id?: string;
   name: string;
   url: string;
   category: string;
   region: string;
-  enabled: boolean;
+  enabled?: boolean;
 };
 
+// Minimal safe defaults if Firestore isn’t reachable.
+const DEFAULT_FEEDS: Feed[] = [
+  { name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global" },
+  { name: "DJ Mag", url: "https://djmag.com/rss.xml", category: "Music", region: "Global" },
+  { name: "XLR8R", url: "https://xlr8r.com/feed/", category: "Music", region: "Global" },
+  { name: "Attack Magazine", url: "https://www.attackmagazine.com/feed/", category: "Industry", region: "Global" },
+  { name: "CDM", url: "https://cdm.link/feed/", category: "Industry", region: "Global" },
+  { name: "Wild City", url: "https://wildcity.in/feed", category: "Music", region: "India" },
+];
+
 export async function getEnabledFeeds(): Promise<Feed[]> {
+  if (!isDbAvailable()) return DEFAULT_FEEDS;
+
+  const db = getDb()!;
   try {
-    const col = db.collection("news_feeds");
-    const snap = await col.where("enabled", "==", true).get();
-    if (snap.empty) {
-        // Fallback to a default list if firestore is empty
-        return [
-             { id: "default-ra", name: "Resident Advisor (News)", url: "https://ra.co/news", category: "Global Underground", region: "Global", enabled: true },
-             { id: "default-mixmag", name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global", enabled: true }
-        ]
-    }
-    return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<Feed, "id">) }));
-  } catch (error) {
-    console.error("Error fetching enabled feeds, using defaults:", error);
-     return [
-        { id: "default-ra", name: "Resident Advisor (News)", url: "https://ra.co/news", category: "Global Underground", region: "Global", enabled: true },
-        { id: "default-mixmag", name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global", enabled: true }
-    ]
+    const snap = await db.collection("news_feeds").where("enabled", "==", true).get();
+    if (snap.empty) return DEFAULT_FEEDS;
+    return snap.docs.map(d => ({ id: d.id, ...(d.data() as Feed) }));
+  } catch {
+    return DEFAULT_FEEDS; // never throw — keep news flowing
   }
 }

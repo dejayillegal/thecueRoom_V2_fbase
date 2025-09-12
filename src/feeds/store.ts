@@ -1,19 +1,10 @@
-
-import { db } from "@/lib/firebase-admin";
+import { getDb } from "@/lib/firebase-admin";
 import type { NewsItem } from "./types";
 
-const AGG_PATH = db.collection("news").doc("aggregate");
-
-type AggregateDoc = {
-  items: Array<NewsItem>;
-  updatedAt: FirebaseFirestore.Timestamp;
-};
-
 function sanitize(item: Partial<NewsItem>): NewsItem {
-  // Replace undefined with explicit values so Firestore never sees "undefined"
   return {
     title: item.title ?? "Untitled",
-    url: item.url ?? "https://thecueroom.example/invalid",
+    url: item.url ?? "https://thecueroom.invalid",
     source: item.source ?? "unknown",
     category: item.category ?? "Music",
     region: item.region ?? "Global",
@@ -23,27 +14,29 @@ function sanitize(item: Partial<NewsItem>): NewsItem {
 }
 
 export async function saveAggregate(items: NewsItem[]) {
+  const db = getDb();
+  if (!db) return; // best-effort cache
   try {
-    const payload = {
-      items: items.map(sanitize),
-      updatedAt: new Date(),
-    };
-    await AGG_PATH.set(payload, { merge: true });
-  } catch (error) {
-    console.error("[store] Failed to save aggregate:", error);
-    // Swallow error - caching is best-effort
+    await db.collection("news").doc("aggregate").set(
+      { items: items.map(sanitize), updatedAt: new Date() },
+      { merge: true }
+    );
+  } catch {
+    /* ignore cache errors */
   }
 }
 
 export async function readAggregateFresh(ttlMs: number): Promise<NewsItem[] | null> {
+  const db = getDb();
+  if (!db) return null;
   try {
-    const snap = await AGG_PATH.get();
+    const snap = await db.collection("news").doc("aggregate").get();
     if (!snap.exists) return null;
-    const data = snap.data() as AggregateDoc;
-    const age = Date.now() - (data.updatedAt.toMillis?.() ?? 0);
-    return age <= ttlMs ? data.items : null;
-  } catch (error) {
-    console.error("[store] Failed to read aggregate:", error);
-    return null; // Never crash the page for a cache read failure
+    const data = snap.data() as any;
+    const ts = data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(0);
+    if (Date.now() - ts.getTime() > ttlMs) return null;
+    return (data.items as NewsItem[]) ?? null;
+  } catch {
+    return null;
   }
 }
