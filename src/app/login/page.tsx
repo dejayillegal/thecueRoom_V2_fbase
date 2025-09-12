@@ -1,11 +1,40 @@
-import Logo from '@/components/logo';
-import LoginForm from '@/components/login-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
+'use client';
 
-export default function LoginPage() {
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { auth } from "@/lib/firebase-client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Logo from "@/components/logo";
+import Link from "next/link";
+
+export default function SignIn() {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const next = sp.get("next") || "/dashboard";
+
+  async function handleGoogle() {
+    try {
+      const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+      const idToken = await cred.user.getIdToken(true);
+
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      if (!res.ok) {
+        console.error("session POST failed", await res.text());
+        return;
+      }
+      router.replace(next);
+    } catch (error) {
+        console.error("Sign in failed", error)
+    }
+  }
+
   return (
-    <div className="relative min-h-screen w-full bg-background">
+     <div className="relative min-h-screen w-full bg-background">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
         <div className="absolute top-4 left-4">
@@ -16,23 +45,19 @@ export default function LoginPage() {
             </span>
           </Link>
         </div>
-        <Card className="w-full max-w-md text-left">
+        <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
+            <CardTitle className="text-2xl">Join thecueRoom</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account.
+              Sign in to access the community and your tools.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <Button onClick={handleGoogle} className="w-full">
+                Continue with Google
+            </Button>
           </CardContent>
         </Card>
-         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-semibold text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );

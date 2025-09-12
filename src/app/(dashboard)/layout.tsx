@@ -20,7 +20,9 @@ import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
-import { getAuth, signOut } from 'firebase/auth';
+import { auth } from "@/lib/firebase-client";
+import { signOut } from 'firebase/auth';
+
 
 // In a real app, you would get this from your auth provider
 const isAdmin = true;
@@ -34,7 +36,7 @@ function LogoutButton() {
       size="sm"
       onClick={async () => {
         await fetch("/api/auth/session", { method: "DELETE" });
-        await signOut(getAuth());
+        await signOut(auth);
         router.replace("/login");
       }}
     >

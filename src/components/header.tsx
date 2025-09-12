@@ -1,16 +1,6 @@
 import Link from 'next/link';
 import Logo from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import LoginForm from './login-form';
-import SignupForm from './signup-form';
 import { LogIn, UserPlus } from 'lucide-react';
 
 export default function Header() {
@@ -23,40 +13,18 @@ export default function Header() {
         </span>
       </Link>
       <div className="flex items-center gap-4">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost">
-              <LogIn />
-              Login
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Welcome back</DialogTitle>
-              <DialogDescription>
-                Enter your credentials to access your account.
-              </DialogDescription>
-            </DialogHeader>
-            <LoginForm />
-          </DialogContent>
-        </Dialog>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus />
-              Sign Up
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create your account</DialogTitle>
-              <DialogDescription>
-                Join the community. Your profile will be reviewed for verification.
-              </DialogDescription>
-            </DialogHeader>
-            <SignupForm />
-          </DialogContent>
-        </Dialog>
+        <Button variant="ghost" asChild>
+          <Link href="/login">
+            <LogIn />
+            Login
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/signup">
+            <UserPlus />
+            Sign Up
+          </Link>
+        </Button>
       </div>
     </header>
   );

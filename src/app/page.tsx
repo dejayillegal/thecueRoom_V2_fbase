@@ -1,5 +1,6 @@
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import SignupForm from '@/components/signup-form';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowRight, UserPlus } from 'lucide-react';
 
 
@@ -30,23 +30,12 @@ export default function Home() {
               </p>
             </div>
             <div className="flex gap-4">
-               <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="lg">
-                    <UserPlus />
-                    Join the Community
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Create your account</DialogTitle>
-                      <DialogDescription>
-                        Join the community. Your profile will be reviewed for verification.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <SignupForm />
-                </DialogContent>
-              </Dialog>
+              <Button size="lg" asChild>
+                <Link href="/signup">
+                  <UserPlus />
+                  Join the Community
+                </Link>
+              </Button>
               <Button size="lg" variant="outline">
                 <ArrowRight />
                 Learn More
