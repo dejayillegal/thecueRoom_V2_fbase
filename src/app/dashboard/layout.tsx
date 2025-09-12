@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -108,8 +107,6 @@ export default function DashboardLayout({
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-          <SidebarMenu className='mt-auto'>
             {isAdmin && (
                <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
@@ -127,11 +124,6 @@ export default function DashboardLayout({
                   <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <div className="w-full text-center text-xs text-muted-foreground bg-muted p-2 rounded-md group-data-[collapsible=icon]:hidden">
-                Invite-only access active
-              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
