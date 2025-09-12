@@ -57,12 +57,21 @@ export default function AdminPage() {
 
   const fetchAllData = async () => {
     try {
-      const [config, feeds] = await Promise.all([
+      const [config, feedsResult] = await Promise.all([
         getCoverArtConfig(),
         getFeeds(),
       ]);
       setImageModel(config.model);
-      setRssFeeds(feeds);
+      if (feedsResult.ok) {
+        setRssFeeds(feedsResult.data);
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Error fetching feeds",
+          description: feedsResult.error,
+          icon: <XCircle />,
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch data", error);
       toast({
@@ -103,7 +112,7 @@ export default function AdminPage() {
   const handleAddFeed = async (data: NewFeedForm) => {
     startTransition(async () => {
       const result = await addFeed(data);
-      if (result.success) {
+      if (result.ok) {
         toast({
           title: "Feed Added",
           description: `"${data.name}" has been added.`,
@@ -115,7 +124,7 @@ export default function AdminPage() {
         toast({
           variant: "destructive",
           title: "Error Adding Feed",
-          description: result.error || 'An unknown error occurred.',
+          description: result.error,
           icon: <XCircle />,
         });
       }
@@ -131,7 +140,7 @@ export default function AdminPage() {
     if (feedToDelete?.id) {
       startTransition(async () => {
         const result = await deleteFeed(feedToDelete.id!);
-        if (result.success) {
+        if (result.ok) {
             toast({
               title: "Feed Deleted",
               description: `"${feedToDelete.name}" has been removed.`,
@@ -142,7 +151,7 @@ export default function AdminPage() {
              toast({
               variant: "destructive",
               title: "Error",
-              description: `Could not delete feed. ${result.error || ''}`,
+              description: `Could not delete feed. ${result.error}`,
               icon: <XCircle />,
             });
         }
@@ -160,8 +169,13 @@ export default function AdminPage() {
   const handleEditConfirm = async (updatedFeed: RssFeed) => {
     if (updatedFeed) {
        startTransition(async () => {
-          const result = await updateFeed(updatedFeed);
-          if (result.success) {
+          if (!updatedFeed.id) {
+            toast({ variant: "destructive", title: "Error", description: "Feed ID is missing." });
+            return;
+          }
+          const {id, ...data} = updatedFeed;
+          const result = await updateFeed(id, data);
+          if (result.ok) {
               toast({
                 title: "Feed Updated",
                 description: `"${updatedFeed.name}" has been updated.`,
@@ -172,7 +186,7 @@ export default function AdminPage() {
               toast({
                 variant: "destructive",
                 title: "Error",
-                description: `Could not update feed. ${result.error || ''}`,
+                description: `Could not update feed. ${result.error}`,
                 icon: <XCircle />,
               });
           }
@@ -326,7 +340,7 @@ export default function AdminPage() {
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           onConfirm={handleEditConfirm}
-          feed={feedToEdit}
+          feed={feedToedit}
           isPending={isPending}
         />
       )}

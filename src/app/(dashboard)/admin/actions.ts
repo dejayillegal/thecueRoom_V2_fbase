@@ -1,41 +1,27 @@
 
 'use server';
 
-import { db } from "@/lib/firebase-admin";
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { getDb } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/auth";
+import { safe } from "@/lib/actions";
 
-export async function setNewsSettings(values: Record<string, unknown>) {
-  // Ensure values are numbers before writing
-  const numericValues: Record<string, number> = {};
-  for (const key in values) {
-    const value = Number(values[key]);
-    if (!isNaN(value)) {
-      numericValues[key] = value;
-    }
-  }
-  await db.collection("config").doc("news").set(numericValues, { merge: true });
-  revalidatePath("/admin");
-  revalidatePath("/news");
+const SettingsSchema = z.object({
+  GLOBAL_TIMEOUT_MS: z.coerce.number().int().positive(),
+  SOURCE_TIMEOUT_MS: z.coerce.number().int().positive(),
+  FETCH_CONCURRENCY: z.coerce.number().int().min(1).max(16),
+  STALE_FALLBACK_MS: z.coerce.number().int().positive(),
+  MAX_PER_SOURCE: z.coerce.number().int().min(1).max(50),
+});
+
+export async function setNewsSettings(raw: unknown) {
+  return safe(async () => {
+    await requireAdmin();
+    const db = getDb();
+    if (!db) throw new Error("Database not available.");
+    const input = SettingsSchema.parse(raw);
+    await db.collection("config").doc("news").set(input, { merge: true });
+    return input;
+  }, { tags: ["news:settings"], paths: ["/news", "/admin"] });
 }
 
-export async function addFeed(input: { name: string; url: string; category: string; region: string }) {
-  await db.collection("news_feeds").add({ ...input, enabled: true, createdAt: new Date() });
-  revalidatePath("/admin");
-}
-
-export async function updateFeed(id: string, values: { name: string; category: string; region: string; }) {
-    await db.collection("news_feeds").doc(id).update(values);
-    revalidatePath("/admin");
-}
-
-
-export async function deleteFeed(id: string) {
-  await db.collection("news_feeds").doc(id).delete();
-  revalidatePath("/admin");
-}
-
-export async function toggleFeed(id: string, enabled: boolean) {
-  await db.collection("news_feeds").doc(id).set({ enabled }, { merge: true });
-  revalidatePath("/admin");
-  revalidatePath("/news");
-}

@@ -3,80 +3,88 @@
 
 import { getDb } from '@/lib/firebase-admin';
 import type { RssFeed } from '@/lib/rss-feeds';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { safe, ok, fail } from '@/lib/actions';
+import { requireAdmin } from '@/lib/auth';
+import { z } from 'zod';
 
-export async function getFeeds(): Promise<RssFeed[]> {
-  const db = getDb();
-  if (!db) {
-    console.warn("Firestore is not available, returning empty feeds list.");
-    return [];
-  }
-  try {
+export async function getFeeds() {
+  return safe(async () => {
+    const db = getDb();
+    if (!db) {
+      console.warn("Firestore is not available, returning empty feeds list.");
+      return [];
+    }
     const snapshot = await db.collection("news_feeds").orderBy("name").get();
     if (snapshot.empty) {
       return [];
     }
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RssFeed));
-  } catch (error) {
-    console.error("Failed to get feeds from Firestore", error);
-    return [];
-  }
+  });
 }
 
-export async function addFeed(newFeed: { name: string; url: string; category: string; region: string; }): Promise<{ success: boolean; error?: string }> {
+
+const AddFeedSchema = z.object({
+  name: z.string().min(2),
+  url: z.string().url(),
+  category: z.string().min(2),
+  region: z.string().min(2),
+});
+
+export async function addFeed(raw: unknown) {
+  return safe(async () => {
+    await requireAdmin();
     const db = getDb();
-    if (!db) {
-        return { success: false, error: "Database not available." };
-    }
+    if (!db) throw new Error("Database not available.");
+    const input = AddFeedSchema.parse(raw);
+    const docRef = await db.collection("news_feeds").add({ ...input, enabled: true, createdAt: new Date() });
+    return { id: docRef.id, ...input };
+  }, { tags: ["news:feeds"], paths: ["/admin"] });
+}
+
+
+const UpdateFeedSchema = AddFeedSchema.partial().extend({
+    enabled: z.boolean().optional(),
+});
+
+export async function updateFeed(id: string, raw: unknown) {
+  return safe(async () => {
+    await requireAdmin();
+    const db = getDb();
+    if (!db) throw new Error("Database not available.");
+    if (!id) throw new Error("Feed ID is required.");
+    const input = UpdateFeedSchema.parse(raw);
+    await db.collection("news_feeds").doc(id).set(input, { merge: true });
+    return { id, ...input };
+  }, { tags: ["news:feeds"], paths: ["/admin"] });
+}
+
+
+export async function deleteFeed(id: string) {
+  return safe(async () => {
+    await requireAdmin();
+    const db = getDb();
+    if (!db) throw new Error("Database not available.");
+    if (!id) throw new Error("Feed ID is required.");
+    await db.collection("news_feeds").doc(id).delete();
+    return { id };
+  }, { tags: ["news:feeds"], paths: ["/admin"] });
+}
+
+
+export async function validateFeedUrl(raw: unknown) {
+  return safe(async () => {
+    const { url } = z.object({ url: z.string().url() }).parse(raw);
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 3500);
     try {
-        await db.collection("news_feeds").add({ ...newFeed, enabled: true, createdAt: new Date() });
-        revalidatePath('/admin');
-        revalidatePath('/news');
-        return { success: true };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : "An unknown error occurred.";
-        console.error("Failed to add feed:", message);
-        return { success: false, error: message };
+      const res = await fetch(url, { signal: ctrl.signal, redirect: "follow" });
+      const type = res.headers.get("content-type") || "";
+      const isFeed = type.includes("xml") || type.includes("rss") || type.includes("atom");
+      const isHtml = type.includes("html");
+      return { ok: res.ok, status: res.status, type, isFeed, isHtml };
+    } finally {
+      clearTimeout(t);
     }
-}
-
-export async function updateFeed(updatedFeed: RssFeed): Promise<{ success: boolean; error?: string }> {
-  const db = getDb();
-  if (!db) {
-      return { success: false, error: "Database not available." };
-  }
-  if (!updatedFeed.id) {
-    return { success: false, error: "Feed ID is missing." };
-  }
-  try {
-    const { id, ...data } = updatedFeed;
-    await db.collection("news_feeds").doc(id).update(data);
-    revalidatePath('/admin');
-    revalidatePath('/news');
-    return { success: true };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred.";
-    console.error("Failed to update feed:", message);
-    return { success: false, error: message };
-  }
-}
-
-export async function deleteFeed(feedId: string): Promise<{ success: boolean; error?: string }> {
-   const db = getDb();
-    if (!db) {
-        return { success: false, error: "Database not available." };
-    }
-   if (!feedId) {
-    return { success: false, error: "Feed ID is missing." };
-  }
-  try {
-    await db.collection("news_feeds").doc(feedId).delete();
-    revalidatePath('/admin');
-    revalidatePath('/news');
-    return { success: true };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred.";
-    console.error("Failed to delete feed:", message);
-    return { success: false, error: message };
-  }
+  });
 }

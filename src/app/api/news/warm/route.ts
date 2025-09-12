@@ -1,27 +1,32 @@
+
 export const runtime = 'nodejs';
-
 import { NextResponse } from "next/server";
-import { getNewsSettings, getEnabledFeeds } from "@/feeds/config";
 import { getDb, getDbInitError, isDbAvailable } from "@/lib/firebase-admin";
+import { getNewsSettings, getEnabledFeeds } from "@/feeds/config";
+import { readAggregateFresh } from "@/feeds/store";
+import { ingestNews } from "@/ai/flows/ingest-news";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const force = url.searchParams.get('force') === 'true';
+
+  if (force) {
+    const { articles } = await ingestNews({ force: true });
+    return NextResponse.json({ ok: true, ingested: articles.length });
+  }
+
   const settings = await getNewsSettings();
   const feeds = await getEnabledFeeds();
-  const db = getDb();
-  const dbErr = getDbInitError();
+  const dbAvailable = isDbAvailable();
+  const dbError = getDbInitError();
+  const agg = await readAggregateFresh(Number.MAX_SAFE_INTEGER);
 
   return NextResponse.json({
     ok: true,
-    env: {
-      TCR_FIRESTORE_DISABLED: process.env.TCR_FIRESTORE_DISABLED ?? null,
-      NODE_ENV: process.env.NODE_ENV,
-    },
-    feeds: { count: feeds.length },
+    firestore: { available: dbAvailable, initError: dbError?.message ?? null },
     settings,
-    firestore: {
-      available: !!db,
-      initError: dbErr ? dbErr.message : null,
-    },
-    time: new Date().toISOString(),
+    feeds: { count: feeds.length },
+    aggregate: { items: agg?.length ?? 0, lastUpdated: agg ? new Date(agg[0]?.publishedAt) : null },
+    ts: new Date().toISOString(),
   });
 }
