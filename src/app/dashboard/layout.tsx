@@ -38,7 +38,7 @@ export default function DashboardLayout({
           <SidebarRail />
           <SidebarContent>
             <SidebarHeader>
-                <Link href="/" className="flex items-center gap-2 group">
+                <Link href="/dashboard" className="flex items-center gap-2 group">
                 <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 <span className="font-normal tracking-tight group-data-[collapsible=icon]:hidden transition-transform duration-300 ease-in-out group-hover:-translate-y-0.5">
                   thecueRoom
@@ -84,8 +84,8 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/news'} tooltip="News">
-                  <Link href="/news">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
+                  <Link href="/dashboard/news">
                     <Newspaper />
                     <span className="group-data-[collapsible=icon]:hidden">News</span>
                   </Link>
@@ -111,8 +111,8 @@ export default function DashboardLayout({
             <SidebarMenu className="mt-auto">
               {isAdmin && (
                   <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
-                    <Link href="/admin">
+                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin'} tooltip="Admin">
+                    <Link href="/dashboard/admin">
                       <Shield />
                       <span className="group-data-[collapsible=icon]:hidden">Admin</span>
                     </Link>
@@ -120,8 +120,8 @@ export default function DashboardLayout({
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
-                  <Link href="/settings">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/settings'} tooltip="Settings">
+                  <Link href="/dashboard/settings">
                     <Settings />
                     <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                   </Link>
@@ -159,11 +159,4 @@ export default function DashboardLayout({
             <footer className="p-4 md:p-6 lg:p-8 text-xs text-muted-foreground border-t">
               <div className="container mx-auto text-center space-y-2">
                 <p>Content aggregated from trusted electronic music sources  • Data from Resident Advisor, Mixmag, Beatport, and more • Updated hourly • Links direct to original sources</p>
-                <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</p>
-              </div>
-            </footer>
-          </div>
-        </SidebarInset>
-    </SidebarProvider>
-  );
-}
+                <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</

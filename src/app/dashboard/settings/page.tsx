@@ -14,7 +14,4 @@ export default function SettingsPage() {
         <CardContent>
           <p>User settings will be implemented here.</p>
         </CardContent>
-      </Card>
-    </div>
-  );
-}
+      </Card
