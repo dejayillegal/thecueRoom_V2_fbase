@@ -34,11 +34,11 @@ export default function DashboardLayout({
 
   return (
     <div className="relative min-h-screen w-full bg-background">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.5),transparent)] grainy" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.5),transparent)]" />
       <SidebarProvider>
           <Sidebar>
             <SidebarRail />
-            <SidebarContent className="bg-background/80 backdrop-blur-lg">
+            <SidebarContent>
               <SidebarHeader>
                  <Link href="/dashboard" className="flex items-center gap-2 group">
                   <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
@@ -95,7 +95,7 @@ export default function DashboardLayout({
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
-                      <Link href="/dashboard/gigs">
+                      <Link href="/gigs">
                         <CalendarDays />
                         <span className="group-data-[collapsible=icon]:hidden">Gigs</span>
                       </Link>
@@ -134,7 +134,7 @@ export default function DashboardLayout({
           </Sidebar>
           <SidebarInset>
             <div className="relative z-10 flex min-h-screen flex-col">
-              <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4 lg:px-6">
+              <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-lg lg:px-6">
                   <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:hidden" />
                      <Button variant="outline" size="sm">
