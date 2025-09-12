@@ -16,7 +16,7 @@ import { ArrowRight, UserPlus } from 'lucide-react';
 export default function Home() {
   return (
     <div className="relative min-h-screen w-full bg-background">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.5),transparent)] grainy"></div>
       <div className="relative z-10 flex min-h-screen flex-col">
         <Header />
         <main className="flex flex-1 items-center justify-center p-4">
