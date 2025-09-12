@@ -1,9 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { PenSquare, Newspaper, Image as ImageIcon, Plus, Eye, Share2, BookOpen } from "lucide-react";
+import { PenSquare, Newspaper, Image as ImageIcon, Plus, Mic, MapPin, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -69,46 +68,51 @@ export default function DashboardPage() {
              <Badge variant="outline">Private beta</Badge>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="all">
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="techno">Techno</TabsTrigger>
-                <TabsTrigger value="house">House</TabsTrigger>
-                <TabsTrigger value="minimal">Minimal</TabsTrigger>
-                <TabsTrigger value="deep">Deep</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Cover Art</CardTitle>
-                  <CardDescription>Generate striking visuals</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    <Button asChild><Link href="/cover-art"><ImageIcon className="mr-2 h-4 w-4"/>Open</Link></Button>
-                    <Button variant="outline"><Eye/>View</Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Memes</CardTitle>
-                  <CardDescription>Spark the community</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    <Button asChild><Link href="/memes"><PenSquare className="mr-2 h-4 w-4"/>Create</Link></Button>
-                    <Button variant="outline"><Share2/>Explore</Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">News</CardTitle>
-                  <CardDescription>Curated underground updates</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    <Button asChild><Link href="/news"><Newspaper className="mr-2 h-4 w-4"/>Read</Link></Button>
-                    <Button variant="outline"><BookOpen/>Sources</Button>
-                </CardContent>
-              </Card>
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <Link href="/dashboard/cover-art" className="group">
+                    <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
+                        <CardHeader>
+                            <ImageIcon className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-semibold">Cover Art</h3>
+                            <p className="text-sm text-muted-foreground">Generate visuals</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                 <Link href="/dashboard/memes" className="group">
+                    <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
+                        <CardHeader>
+                            <PenSquare className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-semibold">Memes</h3>
+                            <p className="text-sm text-muted-foreground">Spark community</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                <Link href="/dashboard/news" className="group">
+                    <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
+                        <CardHeader>
+                            <Newspaper className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-semibold">News</h3>
+                            <p className="text-sm text-muted-foreground">Curated updates</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                 <Link href="/dashboard/gigs" className="group">
+                    <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
+                        <CardHeader>
+                             <CalendarDays className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-semibold">Gig Radar</h3>
+                            <p className="text-sm text-muted-foreground">Find local shows</p>
+                        </CardContent>
+                    </Card>
+                </Link>
             </div>
           </CardContent>
         </Card>
@@ -140,7 +144,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">News spotlights</h2>
-            <Button variant="outline" size="sm" asChild><Link href="/news">View all</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link href="/dashboard/news">View all</Link></Button>
         </div>
         <div className="space-y-4">
           {newsItems.map((item, index) => (
