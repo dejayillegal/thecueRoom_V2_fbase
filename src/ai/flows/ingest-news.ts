@@ -91,11 +91,16 @@ const ingestNewsFlow = ai.defineFlow(
     // The structure above shows how you would use the prompt in a real scenario.
     return {
         articles: [
-            { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "https://ra.co/news/77519", category: "Global Underground", publishedAt: new Date().toISOString() },
-            { title: "Detroit mainstay drops surprise vinyl-only EP", source: "XLR8R", url: "https://xlr8r.com/news/detroit-mainstay-drops-surprise-vinyl-only-ep/", category: "Global Underground", publishedAt: new Date().toISOString() },
-            { title: "Ableton releases new spectral processing device", source: "Ableton Blog", url: "https://www.ableton.com/en/blog/new-spectral-processing-device/", category: "Gear / Production", publishedAt: new Date().toISOString() },
-            { title: "Wild City spotlights new talent from Mumbai", source: "Wild City", url: "https://wildcity.in/news/1234-new-talent-from-mumbai", category: "India / Asia Underground", publishedAt: new Date().toISOString() },
-            { title: "Mixmag premieres a new track from a rising star", source: "Mixmag", url: "https://mixmag.net/feature/premiere-new-track-rising-star", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Berghain announces extended Sunday sessions for the summer", source: "Resident Advisor", url: "https://ra.co/news/77519", category: "Global Underground", publishedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString() },
+            { title: "XLR8R+042: A New Compilation Featuring 10 Exclusive Tracks", source: "XLR8R", url: "https://xlr8r.com/news/xlr8r-042-a-new-compilation/", category: "Global Underground", publishedAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString() },
+            { title: "Ableton releases new spectral processing device 'Spectra'", source: "Ableton Blog", url: "https://www.ableton.com/en/blog/new-spectral-processing-device/", category: "Gear / Production", publishedAt: new Date(Date.now() - 8 * 3600 * 1000).toISOString() },
+            { title: "Wild City spotlights new talent from Mumbai in their latest mix", source: "Wild City", url: "https://wildcity.in/news/1234-new-talent-from-mumbai", category: "India / Asia Underground", publishedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString() },
+            { title: "Mixmag premieres a hypnotic new track from a rising techno star", source: "Mixmag", url: "https://mixmag.net/feature/premiere-new-track-rising-star", category: "Global Underground", publishedAt: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString() },
+            { title: "Dekmantel launches a new podcast series focusing on ambient music", source: "Dekmantel", url: "https://dekmantel.com/podcast/new-series-ambient", category: "Mixes / Podcasts", publishedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
+            { title: "Bandcamp Daily: The Best Electronic Music of the Month", source: "Bandcamp Daily", url: "https://daily.bandcamp.com/best-electronic-music-may-2024", category: "Labels / Platforms", publishedAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
+            { title: "FACT Magazine reviews the latest Moog synthesizer", source: "FACT Magazine", url: "https://www.factmag.com/2024/05/10/moog-synthesizer-review/", category: "Gear / Production", publishedAt: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString() },
+            { title: "The Indian Music Diaries: In conversation with producer Lifafa", source: "The Indian Music Diaries", url: "https://theindianmusicdiaries.com/lifafa-interview/", category: "India / Asia Underground", publishedAt: new Date(Date.now() - 5 * 24 * 36G00 * 1000).toISOString() },
+            { title: "XLR8R Podcast 785: Ben UFO", source: "XLR8R", url: "https://xlr8r.com/podcasts/xlr8r-podcast-785-ben-ufo/", category: "Mixes / Podcasts", publishedAt: new Date(Date.now() - 6 * 24 * 3600 * 1000).toISOString() },
         ]
     };
   }

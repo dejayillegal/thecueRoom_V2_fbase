@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -55,40 +54,40 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
-                <Link href="/dashboard/cover-art">
+              <SidebarMenuButton asChild isActive={pathname === '/cover-art'} tooltip="Cover Art">
+                <Link href="/cover-art">
                   <Image />
                   Cover Art
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/dashboard/memes'} tooltip="Memes">
-                <Link href="/dashboard/memes">
+              <SidebarMenuButton asChild isActive={pathname === '/memes'} tooltip="Memes">
+                <Link href="/memes">
                   <Smile />
                   Memes
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
-                <Link href="/dashboard/news">
+              <SidebarMenuButton asChild isActive={pathname === '/news'} tooltip="News">
+                <Link href="/news">
                   <Newspaper />
                   News
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
-                  <Link href="/dashboard/gigs">
+                <SidebarMenuButton asChild isActive={pathname === '/gigs'} tooltip="Gigs">
+                  <Link href="/gigs">
                     <CalendarDays />
                     Gigs
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/genres'} tooltip="Genres">
-                  <Link href="/dashboard/genres">
+                <SidebarMenuButton asChild isActive={pathname === '/genres'} tooltip="Genres">
+                  <Link href="/genres">
                     <Music />
                     Genres
                   </Link>
@@ -97,8 +96,8 @@ export default function DashboardLayout({
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/dashboard/settings'} tooltip="Settings">
-                <Link href="/dashboard/settings">
+              <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+                <Link href="/settings">
                   <Settings />
                   Settings
                 </Link>
