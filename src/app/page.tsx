@@ -1,7 +1,6 @@
 import Logo from '@/components/logo';
-import SignupForm from '@/components/signup-form';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -11,8 +10,12 @@ export default function Home() {
         <header className="container mx-auto flex items-center justify-between p-4">
           <Logo className="h-8 w-auto text-foreground" />
           <div className="flex items-center gap-4">
-            <Button variant="ghost">Login</Button>
-            <Button>Sign Up</Button>
+            <Button variant="ghost" asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
           </div>
         </header>
         <main className="flex flex-1 items-center justify-center p-4">
@@ -25,17 +28,14 @@ export default function Home() {
                 An exclusive community for India&apos;s underground artists & DJs.
               </p>
             </div>
-            <Card className="w-full max-w-lg text-left">
-              <CardHeader>
-                <CardTitle className="text-2xl">Create your account</CardTitle>
-                <CardDescription>
-                  Join the community. Your profile will be reviewed for verification.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SignupForm />
-              </CardContent>
-            </Card>
+            <div className="flex gap-4">
+              <Button size="lg" asChild>
+                <Link href="/signup">Join the Community</Link>
+              </Button>
+              <Button size="lg" variant="outline">
+                Learn More
+              </Button>
+            </div>
           </div>
         </main>
         <footer className="container mx-auto p-4 text-center text-sm text-muted-foreground">

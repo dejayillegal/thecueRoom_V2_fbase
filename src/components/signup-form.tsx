@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Check, Loader2, Clock, UserCheck } from "lucide-react";
+import { Loader2, Clock, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +21,6 @@ import {
 } from "@/components/ui/form";
 import { handleSignup } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
 
 const signupSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
