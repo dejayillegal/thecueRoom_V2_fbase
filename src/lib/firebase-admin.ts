@@ -1,18 +1,48 @@
-
 // 'nodejs' runtime only — never import from client
-import { getApps, initializeApp, applicationDefault, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import type { App } from "firebase-admin/app";
+import { getApps, initializeApp, applicationDefault, cert } from "firebase-admin/app";
+import type { Firestore } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __tcrAdminApp: App | undefined;
+  // eslint-disable-next-line no-var
+  var __tcrDb: Firestore | undefined;
+  // eslint-disable-next-line no-var
+  var __tcrDbConfigured: boolean | undefined;
+}
 
 const app =
-  getApps()[0] ??
-  initializeApp({
-    // Prefer a service account JSON in env (stringified). Fallback to ADC (Cloud/Studio).
-    credential: process.env.FIREBASE_SERVICE_ACCOUNT
-      ? cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
-      : applicationDefault(),
-  });
+  globalThis.__tcrAdminApp ??
+  (() => {
+    const a =
+      getApps()[0] ??
+      initializeApp({
+        credential: process.env.FIREBASE_SERVICE_ACCOUNT
+          ? cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
+          : applicationDefault(),
+      });
+    globalThis.__tcrAdminApp = a;
+    return a;
+  })();
 
-export const db = getFirestore(app);
+const db =
+  globalThis.__tcrDb ??
+  (() => {
+    const d = getFirestore(app);
+    globalThis.__tcrDb = d;
+    return d;
+  })();
 
-// Critical: let Firestore drop undefined fields instead of crashing.
-db.settings({ ignoreUndefinedProperties: true });
+// Try to set once; ignore if already set/used elsewhere.
+if (!globalThis.__tcrDbConfigured) {
+  try {
+    db.settings({ ignoreUndefinedProperties: true });
+  } catch {
+    // If settings() was already called or Firestore was used, ignore.
+  }
+  globalThis.__tcrDbConfigured = true;
+}
+
+export { db };
