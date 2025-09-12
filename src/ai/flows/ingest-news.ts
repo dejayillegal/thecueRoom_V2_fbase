@@ -43,7 +43,7 @@ async function fetchAndParseFeeds(categories?: string[]): Promise<any[]> {
     return [
         { title: "Mock Article 1 from fetcher", url: "https://example.com/1", source: "Mock Source" },
         { title: "Mock Article 2 from fetcher", url: "https://example.com/2", source: "Mock Source" },
-        { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "#" },
+        { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "https://example.com/berghain" },
     ];
 }
 
@@ -91,11 +91,11 @@ const ingestNewsFlow = ai.defineFlow(
     // The structure above shows how you would use the prompt in a real scenario.
     return {
         articles: [
-            { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
-            { title: "Detroit mainstay drops surprise vinyl-only EP", source: "XLR8R", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
-            { title: "Ableton releases new spectral processing device", source: "Ableton Blog", url: "#", category: "Gear / Production", publishedAt: new Date().toISOString() },
-            { title: "Wild City spotlights new talent from Mumbai", source: "Wild City", url: "#", category: "India / Asia Underground", publishedAt: new Date().toISOString() },
-            { title: "Mixmag premieres a new track from a rising star", source: "Mixmag", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "https://ra.co/news/77519", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Detroit mainstay drops surprise vinyl-only EP", source: "XLR8R", url: "https://xlr8r.com/news/detroit-mainstay-drops-surprise-vinyl-only-ep/", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Ableton releases new spectral processing device", source: "Ableton Blog", url: "https://www.ableton.com/en/blog/new-spectral-processing-device/", category: "Gear / Production", publishedAt: new Date().toISOString() },
+            { title: "Wild City spotlights new talent from Mumbai", source: "Wild City", url: "https://wildcity.in/news/1234-new-talent-from-mumbai", category: "India / Asia Underground", publishedAt: new Date().toISOString() },
+            { title: "Mixmag premieres a new track from a rising star", source: "Mixmag", url: "https://mixmag.net/feature/premiere-new-track-rising-star", category: "Global Underground", publishedAt: new Date().toISOString() },
         ]
     };
   }
