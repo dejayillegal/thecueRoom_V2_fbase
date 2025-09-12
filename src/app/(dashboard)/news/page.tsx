@@ -1,4 +1,3 @@
-
 import { ingestNews } from "@/ai/flows/ingest-news";
 import NewsFeedClient from "@/components/news-feed-client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";

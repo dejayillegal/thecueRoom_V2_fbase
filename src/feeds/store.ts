@@ -15,14 +15,14 @@ function sanitize(item: Partial<NewsItem>): NewsItem {
 
 export async function saveAggregate(items: NewsItem[]) {
   const db = getDb();
-  if (!db) return; // best-effort cache
+  if (!db) return;
   try {
     await db.collection("news").doc("aggregate").set(
       { items: items.map(sanitize), updatedAt: new Date() },
       { merge: true }
     );
   } catch {
-    markDbBroken(); // stop future attempts this boot
+    markDbBroken();
   }
 }
 
