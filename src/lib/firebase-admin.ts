@@ -13,22 +13,22 @@ declare global {
 
 const PROJECT_ID =
   process.env.FIREBASE_PROJECT_ID ||
-  process.env.GOOGLE_CLOUD_PROJECT ||
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID; // fall back to client env if needed
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || // your Studio project id
+  process.env.GOOGLE_CLOUD_PROJECT;              // last resort
+
+// >>> Hard-pin the project id so verifyIdToken uses the right audience
+if (PROJECT_ID) {
+  process.env.GOOGLE_CLOUD_PROJECT = PROJECT_ID;
+  process.env.GCLOUD_PROJECT = PROJECT_ID; // some libs read this alias
+}
 
 function init(): admin.app.App {
   if (global.__tcrAdminApp) return global.__tcrAdminApp;
 
-  if (!PROJECT_ID) {
-    console.warn(
-      "[firebase-admin] Missing FIREBASE_PROJECT_ID/GOOGLE_CLOUD_PROJECT/NEXT_PUBLIC_FIREBASE_PROJECT_ID."
-    );
-  }
-
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.applicationDefault(),
-      projectId: PROJECT_ID, // <-- CRITICAL: ensures verifyIdToken uses the right project
+      projectId: PROJECT_ID, // CRITICAL
     });
   }
   global.__tcrAdminApp = admin.app();
