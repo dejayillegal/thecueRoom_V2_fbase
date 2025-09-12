@@ -36,7 +36,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent>
+        <SidebarContent className="bg-background/80 backdrop-blur-lg">
           <SidebarHeader>
             <div className="flex items-center gap-2">
                 <Logo className="h-8 w-auto text-foreground" />
@@ -44,8 +44,13 @@ export default function DashboardLayout({
                 thecueRoom
                 </span>
             </div>
+            <SidebarTrigger />
           </SidebarHeader>
           <SidebarMenu>
+             <div className="relative w-full p-2">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search..." className="pl-9" />
+            </div>
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -128,16 +133,13 @@ export default function DashboardLayout({
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4 lg:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search artists, tracks, labels" className="pl-9" />
-            </div>
             <div className="flex items-center gap-4">
                <Button variant="outline" size="sm">
                 <Sparkles className="h-4 w-4 mr-2" />
                 AI Tools
               </Button>
+            </div>
+            <div className="flex items-center gap-4">
               <Avatar className="h-8 w-8">
                   <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                   <AvatarFallback>DJ</AvatarFallback>
