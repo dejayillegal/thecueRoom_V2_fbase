@@ -133,7 +133,7 @@ export default function DashboardLayout({
           </Sidebar>
           <SidebarInset className="bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.5),transparent)]">
             <div className="relative z-10 flex min-h-screen flex-col">
-              <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-lg lg:px-6">
+              <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-lg lg:px-6">
                   <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:hidden" />
                      <Button variant="outline" size="sm">
