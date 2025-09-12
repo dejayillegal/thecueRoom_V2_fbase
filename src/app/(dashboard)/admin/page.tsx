@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { rssFeeds as initialRssFeeds, RssFeed } from "@/lib/rss-feeds";
+import { RssFeed, rssFeeds as initialRssFeeds } from "@/lib/rss-feeds";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeleteFeedDialog from "@/components/delete-feed-dialog";
 import EditFeedDialog from "@/components/edit-feed-dialog";
+import { deleteFeed, updateFeed } from "@/app/feeds/actions";
 
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
@@ -75,14 +76,25 @@ export default function AdminPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (feedToDelete) {
-      setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
-      toast({
-        title: "Feed Deleted",
-        description: `"${feedToDelete.name}" has been removed.`,
-        icon: <CheckCircle />,
-      });
+      try {
+        await deleteFeed(feedToDelete.url);
+        // Optimistically update UI or re-fetch
+        setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
+        toast({
+          title: "Feed Deleted",
+          description: `"${feedToDelete.name}" has been removed.`,
+          icon: <CheckCircle />,
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not delete feed.",
+          icon: <XCircle />,
+        });
+      }
     }
     setIsDeleteDialogOpen(false);
     setFeedToDelete(null);
@@ -93,18 +105,30 @@ export default function AdminPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleEditConfirm = (updatedFeed: RssFeed) => {
+  const handleEditConfirm = async (updatedFeed: RssFeed) => {
     if (updatedFeed) {
-      setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
-      toast({
-        title: "Feed Updated",
-        description: `"${updatedFeed.name}" has been updated.`,
-        icon: <CheckCircle />,
-      });
+       try {
+        await updateFeed(updatedFeed);
+        // Optimistically update UI
+        setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
+        toast({
+          title: "Feed Updated",
+          description: `"${updatedFeed.name}" has been updated.`,
+          icon: <CheckCircle />,
+        });
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not update feed.",
+          icon: <XCircle />,
+        });
+      }
     }
     setIsEditDialogOpen(false);
     setFeedToEdit(null);
   };
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
