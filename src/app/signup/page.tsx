@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -147,7 +146,7 @@ export default function SignUpPage() {
                 <Separator />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or</span>
+                <span className="bg-card px-2 text-muted-foreground">Or</span>
               </div>
             </div>
             <Button variant="outline" onClick={onGoogle} disabled={loading} className="w-full">

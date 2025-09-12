@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
