@@ -39,14 +39,14 @@ const styleGuidance = `
 const prompt = ai.definePrompt({
   name: 'generateCoverArtPrompt',
   input: {schema: GenerateCoverArtInputSchema},
-  prompt: `You are a visionary AI art director for an underground music collective called "thecueRoom". Your task is to generate a compelling, high-quality album cover based on a user's prompt, strictly adhering to the established visual identity.
+  prompt: `You are a visionary AI art director for an underground music collective called "thecueRoom". Your task is to expand on a user's creative concept and generate a detailed, descriptive prompt for an image generation model. This new prompt must strictly adhere to the established visual identity.
 
   ${styleGuidance}
 
   **User's Creative Concept:**
   {{{prompt}}}
 
-  Based on the user's concept and the style guidelines, create a single, powerful, and creative image. The final output must be a piece of art that would fit perfectly on a vinyl record sleeve for a cutting-edge electronic music release.
+  Based on the user's concept and the style guidelines, create a rich, detailed paragraph that describes the desired image. This description will be used by another AI to generate the final artwork. It should be evocative and specific, guiding the image model to produce a powerful and creative piece of art that would fit perfectly on a vinyl record sleeve for a cutting-edge electronic music release.
   `,
 });
 
@@ -58,45 +58,26 @@ const generateCoverArtFlow = ai.defineFlow(
     outputSchema: GenerateCoverArtOutputSchema,
   },
   async (input) => {
-    // In a real implementation, you would use an image generation model.
-    console.log("Generating image with prompt:", input.prompt);
-    // For now, we'll return a placeholder to avoid calling a real model.
-    // This demonstrates how the flow would work.
-    
-    // To use a real model, you would uncomment this:
-    /*
+    // Step 1: Have an LLM act as an "art director" to expand the user's prompt
     const llmResponse = await prompt(input);
+    const revisedPrompt = llmResponse.text;
+
+    // Step 2: Use the detailed prompt to generate an image
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: llmResponse.output || input.prompt,
+      prompt: revisedPrompt,
       config: {
         aspectRatio: input.aspectRatio,
       }
     });
 
+    if (!media.url) {
+      throw new Error("Image generation failed to return a URL.");
+    }
+    
     return { 
       imageUrl: media.url,
-      revisedPrompt: llmResponse.output || "No revision needed." 
-    };
-    */
-    
-    // Placeholder logic for demonstration
-    const imageSeed = input.prompt.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    let width = 600;
-    let height = 600;
-    if (input.aspectRatio === '16:9') {
-        width = 800;
-        height = 450;
-    } else if (input.aspectRatio === '9:16') {
-        width = 450;
-        height = 800;
-    }
-
-    const finalPrompt = `(thecueRoom style: dark, moody, abstract, underground music aesthetic) ${input.prompt}`;
-
-    return {
-      imageUrl: `https://picsum.photos/seed/${imageSeed}/${width}/${height}`,
-      revisedPrompt: finalPrompt,
+      revisedPrompt: revisedPrompt || "No revision needed." 
     };
   }
 );
