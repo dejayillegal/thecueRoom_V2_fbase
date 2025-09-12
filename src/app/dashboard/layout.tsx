@@ -13,6 +13,7 @@ import {
   Search,
   LogOut,
   Sparkles,
+  Shield,
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
@@ -20,6 +21,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
+
+// In a real app, you would get this from your auth provider
+const isAdmin = true;
 
 export default function DashboardLayout({
   children,
@@ -44,10 +48,10 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/dashboard'}
+                isActive={pathname === '/'}
                 tooltip="Dashboard"
               >
-                <Link href="/dashboard">
+                <Link href="/">
                   <LayoutDashboard />
                   Dashboard
                 </Link>
@@ -95,6 +99,16 @@ export default function DashboardLayout({
             </SidebarMenuItem>
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
+            {isAdmin && (
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
+                  <Link href="/admin">
+                    <Shield />
+                    Admin
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
                 <Link href="/settings">
