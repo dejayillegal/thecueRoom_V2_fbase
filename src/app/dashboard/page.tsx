@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Create, Newspaper, Image as ImageIcon, Plus } from "lucide-react";
+import { PenSquare, Newspaper, Image as ImageIcon, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -95,7 +95,7 @@ export default function DashboardPage() {
                   <CardDescription>Spark the community</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button><Create className="mr-2 h-4 w-4"/>Create</Button>
+                    <Button><PenSquare className="mr-2 h-4 w-4"/>Create</Button>
                     <Button variant="outline">Explore</Button>
                 </CardContent>
               </Card>
