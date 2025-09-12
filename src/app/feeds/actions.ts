@@ -5,7 +5,7 @@ import { getDb } from '@/lib/firebase-admin';
 import type { RssFeed } from '@/lib/rss-feeds';
 import { revalidateTag } from 'next/cache';
 import { safe } from '@/lib/actions';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-server';
 import { z } from 'zod';
 
 export async function getFeeds() {

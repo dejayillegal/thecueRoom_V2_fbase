@@ -1,19 +1,8 @@
-import { cookies } from "next/headers";
-import { getAuth } from "firebase-admin/auth";
-import "@/lib/firebase-admin"; // ensure admin app init
+// ⚠️ Compat shim: prefer importing from '@/lib/auth-server' going forward.
+// This file exists so old imports don't crash builds.
+// DO NOT import this from client components.
 
-export type AdminContext = { uid: string; email?: string; isAdmin: boolean };
-
-export async function requireUser(): Promise<{ uid: string; email?: string; claims: any }>{
-  const token = cookies().get("__session")?.value;
-  if (!token) throw new Error("Unauthenticated");
-  const decoded = await getAuth().verifyIdToken(token, true);
-  return { uid: decoded.uid, email: decoded.email ?? undefined, claims: decoded };
+if (typeof window !== "undefined") {
+  throw new Error("Don't import '@/lib/auth' from client components. Use the Firebase client SDK.");
 }
-
-export async function requireAdmin(): Promise<AdminContext> {
-  const { uid, email, claims } = await requireUser();
-  const isAdmin = Boolean((claims as any).admin);
-  if (!isAdmin) throw new Error("Forbidden");
-  return { uid, email, isAdmin };
-}
+export * from "./auth-server";

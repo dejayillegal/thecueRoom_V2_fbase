@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { getDb } from "@/lib/firebase-admin";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth-server";
 import { safe } from "@/lib/actions";
 
 const SettingsSchema = z.object({
