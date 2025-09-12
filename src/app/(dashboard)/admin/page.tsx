@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import { deleteFeed, updateFeed } from "@/app/feeds/actions";
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [rssFeeds, setRssFeeds] = useState<RssFeed[]>(initialRssFeeds);
+  const [rssFeeds, setRssFeeds] = useState<RssFeed[]>([]);
   
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<RssFeed | null>(null);
@@ -31,24 +32,26 @@ export default function AdminPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchConfig() {
+    async function fetchAllData() {
       setIsLoading(true);
       try {
         const config = await getCoverArtConfig();
         setImageModel(config.model);
+        // In a real app, you would fetch feeds from the server action/API
+        setRssFeeds(initialRssFeeds);
       } catch (error) {
-        console.error("Failed to fetch config", error);
+        console.error("Failed to fetch data", error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not load cover art configuration.",
+          description: "Could not load initial configuration.",
           icon: <XCircle />,
         });
       } finally {
         setIsLoading(false);
       }
     }
-    fetchConfig();
+    fetchAllData();
   }, [toast]);
 
   const handleSaveConfig = async () => {
@@ -78,19 +81,22 @@ export default function AdminPage() {
   const handleDeleteConfirm = async () => {
     if (feedToDelete) {
       try {
-        await deleteFeed(feedToDelete.url);
-        // Optimistically update UI or re-fetch
-        setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
-        toast({
-          title: "Feed Deleted",
-          description: `"${feedToDelete.name}" has been removed.`,
-          icon: <CheckCircle />,
-        });
+        const result = await deleteFeed(feedToDelete.url);
+        if (result.success) {
+            setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
+            toast({
+              title: "Feed Deleted",
+              description: `"${feedToDelete.name}" has been removed.`,
+              icon: <CheckCircle />,
+            });
+        } else {
+            throw new Error("Server action failed.");
+        }
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not delete feed.",
+          description: "Could not delete feed. The change was not persisted.",
           icon: <XCircle />,
         });
       }
@@ -107,19 +113,22 @@ export default function AdminPage() {
   const handleEditConfirm = async (updatedFeed: RssFeed) => {
     if (updatedFeed) {
        try {
-        await updateFeed(updatedFeed);
-        // Optimistically update UI
-        setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
-        toast({
-          title: "Feed Updated",
-          description: `"${updatedFeed.name}" has been updated.`,
-          icon: <CheckCircle />,
-        });
+        const result = await updateFeed(updatedFeed);
+        if (result.success) {
+            setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
+            toast({
+              title: "Feed Updated",
+              description: `"${updatedFeed.name}" has been updated.`,
+              icon: <CheckCircle />,
+            });
+        } else {
+            throw new Error("Server action failed.");
+        }
       } catch (error) {
          toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not update feed.",
+          description: "Could not update feed. The change was not persisted.",
           icon: <XCircle />,
         });
       }
