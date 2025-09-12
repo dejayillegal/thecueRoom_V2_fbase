@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -139,7 +138,7 @@ export default function DashboardLayout({
                   <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:hidden" />
                      <Button variant="outline" size="sm">
-                      <Sparkles className="h-4 w-4" />
+                      <Sparkles className="mr-2 h-4 w-4" />
                       AI Tools
                     </Button>
                   </div>
@@ -150,7 +149,7 @@ export default function DashboardLayout({
                     </Avatar>
                      <Button variant="default" size="sm" asChild>
                       <Link href="/">
-                        <LogOut />
+                        <LogOut className="mr-2 h-4 w-4" />
                         Sign out
                       </Link>
                     </Button>
