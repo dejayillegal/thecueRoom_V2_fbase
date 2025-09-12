@@ -1,16 +1,16 @@
 
 'use server';
-import "server-only"; // <-- makes this module server-only
+
+import "server-only";
 import { cookies } from "next/headers";
-import { getAuth } from "firebase-admin/auth";
-import "@/lib/firebase-admin"; // your tolerant singleton init
+import { adminAuth } from "@/lib/firebase-admin";
 
 export type AdminContext = { uid: string; email?: string; isAdmin: boolean };
 
 export async function requireUser(): Promise<{ uid: string; email?: string; claims: any }> {
   const token = cookies().get("__session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  const decoded = await getAuth().verifyIdToken(token, true);
+  const decoded = await adminAuth().verifyIdToken(token, true);
   return { uid: decoded.uid, email: decoded.email ?? undefined, claims: decoded };
 }
 

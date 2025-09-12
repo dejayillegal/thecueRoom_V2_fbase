@@ -1,42 +1,61 @@
 
-export const runtime = 'nodejs';
+import "server-only";
+import { NextResponse } from "next/server";
+import { adminAuth } from "@/lib/firebase-admin";
 
-import { cookies } from "next/headers";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Cookie names
+const COOKIE_TOKEN = "__session";  // HttpOnly, server-verified
+const COOKIE_FLAG  = "tcr_auth";   // readable by middleware
+
+function cookieOpts(maxAgeSec: number) {
+  const secure = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: maxAgeSec,
+  };
+}
 
 export async function POST(req: Request) {
   try {
     const { idToken } = await req.json();
-    if (!idToken) return new Response("Missing idToken", { status: 400 });
+    if (!idToken) return NextResponse.json({ error: "idToken required" }, { status: 400 });
 
-    const isProd = process.env.NODE_ENV === "production";
-    const maxAge = 5 * 24 * 60 * 60; // 5 days (seconds)
+    // Verify token with Admin SDK (checks signature + project)
+    const decoded = await adminAuth().verifyIdToken(idToken, true);
 
-    cookies().set("__session", idToken, {
-      httpOnly: true,
-      secure: isProd,
+    // Firebase ID tokens expire ~1 hour; pick a conservative cookie TTL
+    const maxAgeSec = 55 * 60;
+
+    const res = NextResponse.json({ ok: true, uid: decoded.uid, admin: !!(decoded as any).admin });
+
+    // HttpOnly token cookie for server guards
+    res.cookies.set(COOKIE_TOKEN, idToken, cookieOpts(maxAgeSec));
+
+    // Non-HttpOnly presence cookie for middleware
+    res.cookies.set(COOKIE_FLAG, "1", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge,
-    });
-    cookies().set("tcr_auth", "1", {
-      httpOnly: false, // Make this readable by client-side JS for basic UI checks
-      secure: isProd,
-      sameSite: "lax",
-      path: "/",
-      maxAge,
+      maxAge: maxAgeSec,
     });
 
-    return new Response(JSON.stringify({ ok: true }), { headers: { "content-type": "application/json" } });
+    return res;
   } catch (e: any) {
-    console.error("session POST error", e);
-    return new Response("Session error", { status: 500 });
+    return NextResponse.json({ ok: false, error: e?.message || "verify failed" }, { status: 401 });
   }
 }
 
 export async function DELETE() {
-  cookies().set("__session", "", { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 0 });
-  cookies().set("tcr_auth", "", { httpOnly: false, secure: false, sameSite: "lax", path: "/", maxAge: 0 });
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { "content-type": "application/json" },
-  });
+  const res = NextResponse.json({ ok: true });
+  // Clear both cookies
+  res.cookies.set("__session", "", { path: "/", maxAge: 0 });
+  res.cookies.set("tcr_auth", "", { path: "/", maxAge: 0 });
+  return res;
 }
