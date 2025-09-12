@@ -31,7 +31,8 @@ export async function POST() {
       results.push({ uid: user.uid, email });
     }
     return NextResponse.json({ ok: true, users: results });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message ?? String(err) }, { status: 500 });
+  } catch (err: unknown) {
+    const error = err as Error;
+    return NextResponse.json({ ok: false, error: error.message ?? String(err) }, { status: 500 });
   }
 }

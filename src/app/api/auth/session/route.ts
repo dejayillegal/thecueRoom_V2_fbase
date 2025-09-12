@@ -22,25 +22,24 @@ export async function POST(req: Request) {
     let sessionValue: string;
     let decoded: any;
     try {
-      // Attempt to create a long-lived session cookie using the Admin SDK.  Not all
-      // service accounts are authorized for this operation (it requires the
-      // identitytoolkit.sessions.create permission).  If it fails, we'll fall back
-      // to using the raw ID token as the session value.
+      // Attempt to create a long-lived session cookie using the Admin SDK.
+      // This requires the identitytoolkit.sessions.create permission.
       const expiresInMs = 60 * 60 * 24 * 5 * 1000; // 5 days
       sessionValue = await auth.createSessionCookie(idToken, { expiresIn: expiresInMs });
       decoded = await auth.verifySessionCookie(sessionValue, true);
     } catch (err) {
-      // Fall back to verifying the ID token directly.  This still returns the
-      // decoded claims and we use the ID token as our session value.  The
-      // cookie's TTL is set to match the token's expiry (1 hour).
+      // If session cookie creation fails, fall back to using the raw ID token.
+      // The cookie's TTL will match the token's expiry (1 hour).
+      console.warn("Session cookie creation failed, falling back to ID token.", err);
       decoded = await auth.verifyIdToken(idToken, true);
       sessionValue = idToken;
     }
+    
     const cookieStore = cookies();
     const isProd = process.env.NODE_ENV === "production";
-    // Determine expiration: if using a session cookie, it lasts 5 days; if using
-    // the ID token, expire in 1 hour to align with Firebase ID token TTL.
+    // Determine expiration: 5 days for session cookie, 1 hour for ID token.
     const maxAgeSeconds = sessionValue === idToken ? 60 * 60 : (60 * 60 * 24 * 5);
+
     cookieStore.set("__session", sessionValue, {
       httpOnly: true,
       secure: isProd,
@@ -48,6 +47,8 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: maxAgeSeconds,
     });
+
+    // Set a client-side readable flag to help middleware.
     cookieStore.set("tcr_auth", "1", {
       httpOnly: false,
       secure: isProd,
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: maxAgeSeconds,
     });
+
     return NextResponse.json({ ok: true, uid: decoded.uid });
   } catch (e: any) {
     return NextResponse.json(

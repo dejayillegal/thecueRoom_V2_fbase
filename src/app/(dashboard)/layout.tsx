@@ -60,11 +60,16 @@ export default function DashboardLayout({
   const [isAdmin, setIsAdmin] = React.useState(false);
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        const tokenResult = await user.getIdTokenResult();
-        setIsAdmin(!!tokenResult.claims.admin);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const tokenResult = await currentUser.getIdTokenResult();
+          setIsAdmin(!!tokenResult.claims.admin);
+        } catch (error) {
+            console.error("Error getting user claims", error);
+            setIsAdmin(false);
+        }
       } else {
         setUser(null);
         setIsAdmin(false);
