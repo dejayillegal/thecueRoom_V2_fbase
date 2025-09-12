@@ -38,7 +38,7 @@ export default function DashboardLayout({
         <SidebarContent className="bg-background/80 backdrop-blur-lg">
           <SidebarHeader>
             <div className="flex items-center gap-2">
-                <Logo className="h-8 w-auto text-foreground" />
+                <Logo className="h-7 w-auto text-foreground" />
                 <div className="flex flex-col">
                   <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
                     thecueRoom
