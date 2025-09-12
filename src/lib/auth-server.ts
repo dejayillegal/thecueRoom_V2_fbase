@@ -6,7 +6,7 @@ import { adminAuth } from "@/lib/firebase-admin";
 export async function requireUser() {
   const token = cookies().get("__session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  // Use verifySessionCookie instead of verifyIdToken
+  // Verify the long-lived Firebase session cookie instead of the raw ID token.
   const decoded = await adminAuth().verifySessionCookie(token, true);
   return { uid: decoded.uid, email: decoded.email, claims: decoded };
 }
