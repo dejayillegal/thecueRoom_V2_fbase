@@ -10,7 +10,9 @@ export type AdminContext = { uid: string; email?: string; isAdmin: boolean };
 export async function requireUser(): Promise<{ uid: string; email?: string; claims: any }> {
   const token = cookies().get("__session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  const decoded = await adminAuth().verifyIdToken(token, true);
+  if (!adminAuth) throw new Error("Auth service not available.");
+
+  const decoded = await adminAuth.verifyIdToken(token, true);
   return { uid: decoded.uid, email: decoded.email ?? undefined, claims: decoded };
 }
 

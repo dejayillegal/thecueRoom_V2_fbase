@@ -25,9 +25,10 @@ export async function POST(req: Request) {
   try {
     const { idToken } = await req.json();
     if (!idToken) return NextResponse.json({ error: "idToken required" }, { status: 400 });
+    if (!adminAuth) return NextResponse.json({ error: "Auth service not available" }, { status: 500 });
 
     // Verify token with Admin SDK (checks signature + project)
-    const decoded = await adminAuth().verifyIdToken(idToken, true);
+    const decoded = await adminAuth.verifyIdToken(idToken, true);
 
     // Firebase ID tokens expire ~1 hour; pick a conservative cookie TTL
     const maxAgeSec = 55 * 60;
