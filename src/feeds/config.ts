@@ -1,7 +1,8 @@
 
 import type { FeedSource } from "./types";
 
-export const FEEDS: FeedSource[] = [
+// Changed from const to let to allow modification by feed management actions.
+export let FEEDS: FeedSource[] = [
   // --- Music / India
   { name: "Wild City", url: "https://wildcity.in/feed", category: "Music", region: "India" },
   { name: "Rolling Stone India (Dance/Electronic)", url: "https://rollingstoneindia.com/music/feed/", category: "Music", region: "India" },
