@@ -40,10 +40,10 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
                 <Logo className="h-7 w-auto text-foreground" />
                 <div className="flex flex-col">
-                  <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                  <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                     thecueRoom
                   </span>
-                  <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                  <span className="text-[0.7rem] text-muted-foreground group-data-[collapsible=icon]:hidden">
                     Underground Music Community
                   </span>
                 </div>
