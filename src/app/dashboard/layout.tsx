@@ -37,14 +37,14 @@ export default function DashboardLayout({
         <SidebarRail />
         <SidebarContent className="bg-background/80 backdrop-blur-lg">
           <SidebarHeader>
-            <div className="flex items-center gap-2">
-                <Logo className="h-7 w-auto text-foreground" />
+            <Link href="/dashboard" className="flex items-center gap-2 group">
+                <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 <div className="flex flex-col">
-                  <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+                  <span className="font-semibold tracking-tight group-data-[collapsible=icon]:hidden transition-transform duration-300 ease-in-out group-hover:-translate-y-0.5">
                     thecueRoom
                   </span>
                 </div>
-            </div>
+            </Link>
             <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
           </SidebarHeader>
           <SidebarMenu>
