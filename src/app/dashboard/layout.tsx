@@ -78,7 +78,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton href="#" tooltip="Genres">
                     <Music />
                     Genres
-                </Button>
+                </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
