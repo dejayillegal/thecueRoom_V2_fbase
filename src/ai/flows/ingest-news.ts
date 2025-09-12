@@ -1,33 +1,30 @@
 
 'use server';
-/**
- * @fileOverview A news ingestion AI agent.
- *
- * - ingestNews - A function that handles the news ingestion process.
- * - IngestNewsInput - The input type for the ingestNews function.
- * - IngestNewsOutput - The return type for the ingestNews function.
- */
 
-import { fetchAllSources } from "@/feeds/fetchers";
 import { FEEDS, MAX_PER_SOURCE, STALE_MS } from "@/feeds/config";
+import { fetchAllSources } from "@/feeds/fetchers";
 import { readAggregateFresh, saveAggregate } from "@/feeds/store";
 import type { IngestNewsInput, IngestNewsOutput } from "@/feeds/types";
 
-export async function ingestNews(input: IngestNewsInput): Promise<IngestNewsOutput> {
-  // 1) Serve from Firestore if fresh
-  if (!input?.force) {
-    const fresh = await readAggregateFresh(STALE_MS);
-    if (fresh?.length) return { articles: fresh };
+export async function ingestNews(input: IngestNewsInput = {}): Promise<IngestNewsOutput> {
+  // Fast path: cached
+  try {
+    if (!input?.force) {
+      const fresh = await readAggregateFresh(STALE_MS);
+      if (fresh?.length) return { articles: fresh };
+    }
+  } catch {
+    // ignore cache read errors
   }
 
-  // 2) Otherwise fetch live, save, and return
+  // Live fetch
   const live = await fetchAllSources(FEEDS, MAX_PER_SOURCE);
   if (live.length) {
-    await saveAggregate(live);
+    try { await saveAggregate(live); } catch { /* ignore cache write errors */ }
     return { articles: live };
   }
 
-  // 3) Final fallback: if nothing live and no fresh cache, return a minimal static set
+  // Last resort (never blank page)
   return {
     articles: [
       {

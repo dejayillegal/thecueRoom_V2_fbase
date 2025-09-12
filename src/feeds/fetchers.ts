@@ -39,35 +39,44 @@ async function fetchText(url: string, headers: Record<string, string> = {}) {
   return { status: res.statusCode, headers: res.headers as Record<string, string | number | string[]>, text };
 }
 
+function safeDate(v: any): Date {
+  const d = v instanceof Date ? v : new Date(String(v));
+  return isNaN(+d) ? new Date() : d;
+}
+
 // Normalize common RSS/Atom shapes into Article[]
 function normalizeToArticles(xml: any, source: FeedSource): Article[] {
   // RSS 2.0
   if (xml?.rss?.channel?.item) {
     const items = Array.isArray(xml.rss.channel.item) ? xml.rss.channel.item : [xml.rss.channel.item];
-    return items.map((it: any) => ({
-      title: String(it.title ?? "").trim(),
-      url: String(it.link ?? it.guid ?? "").trim(),
-      source: source.name,
-      category: source.category,
-      region: source.region,
-      publishedAt: it.pubDate ?? it.updated ?? new Date(),
-      summary: removeMd(String(it.description ?? it["content:encoded"] ?? "")).slice(0, 300),
-      image: extractImage(it),
-    }));
+    return items.map((it: any) => {
+      const image = extractImage(it); // may be undefined
+      return {
+        title: String(it.title ?? "").trim(),
+        url: String(it.link ?? it.guid ?? "").trim(),
+        source: source.name,
+        category: source.category,
+        region: source.region,
+        publishedAt: safeDate(it.pubDate ?? it.updated ?? Date.now()),
+        summary: removeMd(String(it.description ?? it["content:encoded"] ?? "")).slice(0, 300),
+        ...(image ? { image } : {}), // strip undefined here
+      };
+    });
   }
   // Atom
   if (xml?.feed?.entry) {
     const entries = Array.isArray(xml.feed.entry) ? xml.feed.entry : [xml.feed.entry];
-    return entries.map((e: any) => ({
-      title: String(e.title ?? "").trim(),
-      url: String(e.link?.href ?? e.id ?? "").trim(),
-      source: source.name,
-      category: source.category,
-      region: source.region,
-      publishedAt: e.updated ?? e.published ?? new Date(),
-      summary: removeMd(String(e.summary ?? e.content ?? "")).slice(0, 300),
-      image: undefined,
-    }));
+    return entries.map((e: any) => {
+      return {
+        title: String(e.title ?? "").trim(),
+        url: String(e.link?.href ?? e.id ?? "").trim(),
+        source: source.name,
+        category: source.category,
+        region: source.region,
+        publishedAt: safeDate(e.updated ?? e.published ?? Date.now()),
+        summary: removeMd(String(e.summary ?? e.content ?? "")).slice(0, 300),
+      };
+    });
   }
   return [];
 }
