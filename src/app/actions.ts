@@ -1,8 +1,10 @@
+
 "use server";
 
 import { z } from "zod";
 import { autoVerifyUsers } from "@/ai/flows/auto-verify-users";
 import { generateCoverArt, GenerateCoverArtInput } from "@/ai/flows/generate-cover-art";
+import { getCoverArtConfig as getCoverArtConfigFlow, setCoverArtConfig as setCoverArtConfigFlow } from "@/ai/flows/get-set-cover-art-config";
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -110,4 +112,21 @@ export async function handleCoverArtGeneration(data: unknown): Promise<CoverArtR
             message: errorMessage,
         };
     }
+}
+
+// Actions for Cover Art Config
+const coverArtConfigSchema = z.object({
+  model: z.enum(["premium", "free"]),
+});
+
+export async function getCoverArtConfig() {
+  return getCoverArtConfigFlow();
+}
+
+export async function setCoverArtConfig(data: unknown) {
+  const validationResult = coverArtConfigSchema.safeParse(data);
+  if (!validationResult.success) {
+    throw new Error("Invalid config data");
+  }
+  return setCoverArtConfigFlow(validationResult.data);
 }

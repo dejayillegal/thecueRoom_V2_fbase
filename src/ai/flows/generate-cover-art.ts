@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating cover art for music releases.
@@ -10,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { generateThumbnail } from './generate-thumbnail';
+import { getCoverArtConfig } from './get-set-cover-art-config';
 
 const GenerateCoverArtInputSchema = z.object({
   prompt: z.string().describe('The user\'s creative prompt for the cover art.'),
@@ -61,7 +63,15 @@ const generateCoverArtFlow = ai.defineFlow(
     outputSchema: GenerateCoverArtOutputSchema,
   },
   async (input) => {
+    const config = await getCoverArtConfig();
+
+    if (config.model === 'free') {
+      console.log("Using free tier generation.");
+      return generateThumbnail({ title: input.prompt });
+    }
+
     try {
+      console.log("Using premium tier generation.");
       // Step 1: Have an LLM act as an "art director" to expand the user's prompt
       const directorResponse = await artDirectorPrompt({ prompt: input.prompt });
       const revisedPrompt = directorResponse.text;
@@ -132,7 +142,7 @@ const generateCoverArtFlow = ai.defineFlow(
           const fallbackResult = await generateThumbnail({ title: input.prompt });
           return {
               imageUrl: fallbackResult.imageUrl,
-              revisedPrompt: "Using free tier. Enable billing in Google Cloud for advanced AI generation."
+              revisedPrompt: "Using free tier. Enable billing in Google Cloud or select Free tier in Admin panel for advanced AI generation."
           };
       }
 
