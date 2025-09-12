@@ -6,18 +6,21 @@ import Link from 'next/link';
 import {
   Newspaper,
   LayoutDashboard,
-  MessageSquare,
+  Smile,
   Music,
-  MapPin,
-  Sparkles,
-  Users,
+  CalendarDays,
   Settings,
   Shield,
+  Image,
+  Search,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout({
   children,
@@ -48,28 +51,16 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Feed">
-                <MessageSquare />
-                Feed
+              <SidebarMenuButton href="#" tooltip="Cover Art">
+                <Image />
+                Cover Art
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Creative Tab">
-                <Sparkles />
-                Creative
+             <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Memes">
+                <Smile />
+                Memes
               </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="#" tooltip="Playlists">
-                    <Music />
-                    Playlists
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="#" tooltip="Gig Radar">
-                    <MapPin />
-                    Gig Radar
-                </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#" tooltip="News">
@@ -77,42 +68,59 @@ export default function DashboardLayout({
                 News
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="#" tooltip="Gigs">
+                    <CalendarDays />
+                    Gigs
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="#" tooltip="Genres">
+                    <Music />
+                    Genres
+                </Button>
+            </SidebarMenuItem>
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Admin">
-                <Shield />
-                Admin
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#" tooltip="Settings">
                 <Settings />
                 Settings
               </SidebarMenuButton>
             </SidebarMenuItem>
+             <SidebarMenuItem>
+              <div className="w-full text-center text-xs text-muted-foreground bg-muted p-2 rounded-md">
+                Invite-only access active
+              </div>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className='p-2'>
-            <div className="flex items-center gap-3">
-                <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>DJ</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                    <span className="font-semibold text-sm">dejayillegal</span>
-                    <span className="text-xs text-muted-foreground">dejayillegal@gmail.com</span>
-                </div>
-            </div>
-        </SidebarFooter>
-
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-12 items-center justify-between border-b p-2">
-            <SidebarTrigger />
-            {/* Header Content */}
+        <header className="flex h-14 items-center justify-between border-b px-4 lg:px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search artists, tracks, labels" className="pl-9" />
+            </div>
+            <div className="flex items-center gap-4">
+               <Button variant="outline" size="sm">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Tools
+              </Button>
+              <Avatar className="h-8 w-8">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                  <AvatarFallback>DJ</AvatarFallback>
+              </Avatar>
+               <Button variant="primary" size="sm" asChild>
+                <Link href="/">
+                  Sign out
+                  <LogOut className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             {children}
         </main>
       </SidebarInset>
