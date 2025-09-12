@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Save, Trash2, Pencil } from "lucide-react";
+import { Plus, Save, Trash2, Pencil, CheckCircle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getCoverArtConfig, setCoverArtConfig } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,7 @@ export default function AdminPage() {
           variant: "destructive",
           title: "Error",
           description: "Could not load cover art configuration.",
+          icon: <XCircle />,
         });
       } finally {
         setIsLoading(false);
@@ -57,12 +58,14 @@ export default function AdminPage() {
       toast({
         title: "Configuration Saved",
         description: "Cover art generation model has been updated.",
+        icon: <CheckCircle />,
       });
     } catch (error) {
        toast({
         variant: "destructive",
         title: "Error",
         description: "Could not save configuration.",
+        icon: <XCircle />,
       });
     }
   };
@@ -78,6 +81,7 @@ export default function AdminPage() {
       toast({
         title: "Feed Deleted",
         description: `"${feedToDelete.name}" has been removed.`,
+        icon: <CheckCircle />,
       });
     }
     setIsDeleteDialogOpen(false);
@@ -95,6 +99,7 @@ export default function AdminPage() {
       toast({
         title: "Feed Updated",
         description: `"${updatedFeed.name}" has been updated.`,
+        icon: <CheckCircle />,
       });
     }
     setIsEditDialogOpen(false);
