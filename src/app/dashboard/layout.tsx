@@ -114,7 +114,7 @@ export default function DashboardLayout({
                   <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                   <AvatarFallback>DJ</AvatarFallback>
               </Avatar>
-               <Button variant="primary" size="sm" asChild>
+               <Button variant="default" size="sm" asChild>
                 <Link href="/">
                   Sign out
                   <LogOut className="h-4 w-4 ml-2" />
