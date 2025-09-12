@@ -103,6 +103,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  .card {
+    @apply bg-card/80 backdrop-blur-lg;
+  }
 }
 
 @layer utilities {
