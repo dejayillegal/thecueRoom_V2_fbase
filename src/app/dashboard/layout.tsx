@@ -40,7 +40,7 @@ export default function DashboardLayout({
           <SidebarHeader>
             <div className="flex items-center gap-2">
                 <Logo className="h-8 w-auto text-foreground" />
-                <span className="font-headline text-xl font-bold tracking-tight">
+                <span className="font-headline text-xl font-bold tracking-tight group-data-[collapsible=icon]:hidden">
                 thecueRoom
                 </span>
             </div>
@@ -49,7 +49,7 @@ export default function DashboardLayout({
           <SidebarMenu>
              <div className="relative w-full p-2">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search..." className="pl-9" />
+              <Input placeholder="Search..." className="pl-9 group-data-[collapsible=icon]:hidden" />
             </div>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -59,7 +59,7 @@ export default function DashboardLayout({
               >
                 <Link href="/dashboard">
                   <LayoutDashboard />
-                  Dashboard
+                  <span className="group-data-[collapsible=icon]:hidden">Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -67,7 +67,7 @@ export default function DashboardLayout({
               <SidebarMenuButton asChild isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
                 <Link href="/dashboard/cover-art">
                   <Image />
-                  Cover Art
+                  <span className="group-data-[collapsible=icon]:hidden">Cover Art</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -75,7 +75,7 @@ export default function DashboardLayout({
               <SidebarMenuButton asChild isActive={pathname === '/dashboard/memes'} tooltip="Memes">
                 <Link href="/dashboard/memes">
                   <Smile />
-                  Memes
+                  <span className="group-data-[collapsible=icon]:hidden">Memes</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -83,7 +83,7 @@ export default function DashboardLayout({
               <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
                 <Link href="/dashboard/news">
                   <Newspaper />
-                  News
+                  <span className="group-data-[collapsible=icon]:hidden">News</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -91,7 +91,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
                   <Link href="/dashboard/gigs">
                     <CalendarDays />
-                    Gigs
+                    <span className="group-data-[collapsible=icon]:hidden">Gigs</span>
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -99,7 +99,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/genres'} tooltip="Genres">
                   <Link href="/dashboard/genres">
                     <Music />
-                    Genres
+                    <span className="group-data-[collapsible=icon]:hidden">Genres</span>
                   </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -110,7 +110,7 @@ export default function DashboardLayout({
                 <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
                   <Link href="/admin">
                     <Shield />
-                    Admin
+                    <span className="group-data-[collapsible=icon]:hidden">Admin</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -119,12 +119,12 @@ export default function DashboardLayout({
               <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
                 <Link href="/settings">
                   <Settings />
-                  Settings
+                  <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <div className="w-full text-center text-xs text-muted-foreground bg-muted p-2 rounded-md">
+              <div className="w-full text-center text-xs text-muted-foreground bg-muted p-2 rounded-md group-data-[collapsible=icon]:hidden">
                 Invite-only access active
               </div>
             </SidebarMenuItem>
@@ -147,7 +147,7 @@ export default function DashboardLayout({
               </Avatar>
                <Button variant="default" size="sm" asChild>
                 <Link href="/">
-                  Sign out
+                  <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
                   <LogOut className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
