@@ -16,7 +16,7 @@ import { LogIn, UserPlus } from 'lucide-react';
 export default function SignupPage() {
   return (
     <div className="relative min-h-screen w-full bg-background">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]" />
       <header className="container relative z-10 mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex items-center gap-2">
           <Logo className="h-8 w-auto text-foreground" />

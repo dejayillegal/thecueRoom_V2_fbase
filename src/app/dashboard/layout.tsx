@@ -14,7 +14,7 @@ import {
   LogOut,
   Sparkles,
   Shield,
-  User,
+  UserPlus,
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarRail } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
@@ -138,7 +138,7 @@ export default function DashboardLayout({
                   <div className="flex items-center gap-4">
                     <SidebarTrigger className="md:hidden" />
                      <Button variant="outline" size="sm">
-                      <Sparkles className="h-4 w-4 mr-2" />
+                      <Sparkles className="h-4 w-4" />
                       AI Tools
                     </Button>
                   </div>
@@ -150,7 +150,7 @@ export default function DashboardLayout({
                      <Button variant="default" size="sm" asChild>
                       <Link href="/">
                         <LogOut />
-                        <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+                        Sign out
                       </Link>
                     </Button>
                   </div>
