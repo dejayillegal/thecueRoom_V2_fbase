@@ -2,23 +2,27 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { rssFeeds } from "@/lib/rss-feeds";
+import { rssFeeds as initialRssFeeds, RssFeed } from "@/lib/rss-feeds";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Save } from "lucide-react";
+import { Plus, Save, Trash2, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getCoverArtConfig, setCoverArtConfig } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import DeleteFeedDialog from "@/components/delete-feed-dialog";
 
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [rssFeeds, setRssFeeds] = useState<RssFeed[]>(initialRssFeeds);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [feedToDelete, setFeedToDelete] = useState<RssFeed | null>(null);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,6 +60,23 @@ export default function AdminPage() {
         description: "Could not save configuration.",
       });
     }
+  };
+
+  const handleDeleteClick = (feed: RssFeed) => {
+    setFeedToDelete(feed);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (feedToDelete) {
+      setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
+      toast({
+        title: "Feed Deleted",
+        description: `"${feedToDelete.name}" has been removed.`,
+      });
+    }
+    setIsDeleteDialogOpen(false);
+    setFeedToDelete(null);
   };
 
 
@@ -150,16 +171,25 @@ export default function AdminPage() {
                               <TableHead>Name</TableHead>
                               <TableHead>Category</TableHead>
                               <TableHead>Region</TableHead>
-                              <TableHead>URL</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                           </TableHeader>
                           <TableBody>
-                          {rssFeeds.map((feed, index) => (
-                              <TableRow key={index}>
-                              <TableCell className="font-medium">{feed.name}</TableCell>
-                              <TableCell><Badge variant="outline">{feed.category}</Badge></TableCell>
-                              <TableCell><Badge variant="secondary">{feed.region}</Badge></TableCell>
-                              <TableCell className="text-muted-foreground truncate max-w-xs">{feed.url}</TableCell>
+                          {rssFeeds.map((feed) => (
+                              <TableRow key={feed.url} className="group">
+                                <TableCell className="font-medium text-xs py-2">{feed.name}</TableCell>
+                                <TableCell className="py-2"><Badge variant="outline">{feed.category}</Badge></TableCell>
+                                <TableCell className="py-2"><Badge variant="secondary">{feed.region}</Badge></TableCell>
+                                <TableCell className="text-right py-2">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-2">
+                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteClick(feed)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
                               </TableRow>
                           ))}
                           </TableBody>
@@ -170,6 +200,12 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </div>
+      <DeleteFeedDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        feedName={feedToDelete?.name || ''}
+      />
     </div>
   );
 }
