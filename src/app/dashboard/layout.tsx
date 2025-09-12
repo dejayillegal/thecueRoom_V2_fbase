@@ -40,7 +40,7 @@ export default function DashboardLayout({
           <SidebarHeader>
             <div className="flex items-center gap-2">
                 <Logo className="h-8 w-auto text-foreground" />
-                <span className="font-headline text-xl font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
                 thecueRoom
                 </span>
             </div>
