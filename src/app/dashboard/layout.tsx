@@ -49,10 +49,10 @@ export default function DashboardLayout({
           <SidebarMenu>
              <div className="relative w-full p-2">
               <SidebarMenuButton asChild variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center">
-                  <>
+                  <div className="flex items-center gap-2">
                     <Search className="h-4 w-4" />
                     <span className="group-data-[collapsible=icon]:hidden">Search...</span>
-                  </>
+                  </div>
               </SidebarMenuButton>
             </div>
             <SidebarMenuItem>
