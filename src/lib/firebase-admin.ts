@@ -11,51 +11,59 @@ declare global {
   var __tcrDbInitError: Error | null | undefined;
 }
 
-const PROJECT_ID =
-  process.env.FIREBASE_PROJECT_ID ||
-  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || // your Studio project id
-  process.env.GOOGLE_CLOUD_PROJECT;              // last resort
-
-// >>> Hard-pin the project id so verifyIdToken uses the right audience
-if (PROJECT_ID) {
-  process.env.GOOGLE_CLOUD_PROJECT = PROJECT_ID;
-  process.env.GCLOUD_PROJECT = PROJECT_ID; // some libs read this alias
-}
-
-function init(): admin.app.App {
-  if (global.__tcrAdminApp) return global.__tcrAdminApp;
-
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      projectId: PROJECT_ID, // CRITICAL
-    });
+function init() {
+  if (global.__tcrAdminApp) {
+    return { app: global.__tcrAdminApp, db: globalThis.__tcrDb as Firestore | null };
   }
-  global.__tcrAdminApp = admin.app();
-  return global.__tcrAdminApp;
-}
 
-export const adminApp = init();
-export function adminAuth() {
-  return admin.auth(adminApp);
-}
+  if (globalThis.__tcrDbBroken) {
+     return { app: undefined, db: null };
+  }
 
-let _db: Firestore | null = null;
-function tryInitDb() {
-  if (_db) return _db;
-  if (globalThis.__tcrDbBroken) return null;
+  let app: admin.app.App | undefined;
+  let db: Firestore | null = null;
+  
   try {
-    _db = admin.firestore(adminApp);
-    return _db;
+    const hasInlineSA = !!process.env.FIREBASE_SERVICE_ACCOUNT;
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+    const credential = hasInlineSA
+      ? admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!))
+      : admin.credential.applicationDefault();
+
+    if (!admin.apps.length) {
+      admin.initializeApp({ credential, projectId });
+    }
+    
+    app = admin.app();
+
+    try {
+      db = admin.firestore(app);
+      globalThis.__tcrDb = db;
+    } catch(e: any) {
+      db = null;
+      globalThis.__tcrDb = null;
+      globalThis.__tcrDbBroken = true;
+      globalThis.__tcrDbInitError = e;
+    }
   } catch (e: any) {
-    globalThis.__tcrDbInitError = e;
-    globalThis.__tcrDbBroken = true;
-    return null;
+    app = undefined;
+    db = null;
+    console.error("Firebase admin init failed", e);
   }
+
+  global.__tcrAdminApp = app;
+  return { app, db };
 }
+
+const _inited = init();
+
+export const adminApp = _inited.app!;
+export const adminAuth = _inited.app ? admin.auth(_inited.app) : null;
 
 export async function getDb(): Promise<Firestore | null> {
-  return tryInitDb();
+  if (globalThis.__tcrDbBroken) return null;
+  return globalThis.__tcrDb as Firestore ?? _inited.db;
 }
 
 export async function getDbInitError(): Promise<Error | null> {
@@ -63,7 +71,8 @@ export async function getDbInitError(): Promise<Error | null> {
 }
 
 export async function isDbAvailable(): Promise<boolean> {
-  return !!tryInitDb();
+  if (globalThis.__tcrDbBroken) return false;
+  return !!(globalThis.__tcrDb ?? _inited.db);
 }
 
 export async function markDbBroken(): Promise<void> {
@@ -71,4 +80,4 @@ export async function markDbBroken(): Promise<void> {
   globalThis.__tcrDb = null;
 }
 
-export const ADMIN_PROJECT_ID = PROJECT_ID; // optional: for debug
+export const ADMIN_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
