@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { PenSquare, Newspaper, Image as ImageIcon, Plus } from "lucide-react";
+import { PenSquare, Newspaper, Image as ImageIcon, Plus, Eye, Share2, BookOpen } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -86,7 +86,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                     <Button asChild><Link href="/cover-art"><ImageIcon className="mr-2 h-4 w-4"/>Open</Link></Button>
-                    <Button variant="outline">View</Button>
+                    <Button variant="outline"><Eye/>View</Button>
                 </CardContent>
               </Card>
               <Card>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                     <Button asChild><Link href="/memes"><PenSquare className="mr-2 h-4 w-4"/>Create</Link></Button>
-                    <Button variant="outline">Explore</Button>
+                    <Button variant="outline"><Share2/>Explore</Button>
                 </CardContent>
               </Card>
               <Card>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                     <Button asChild><Link href="/news"><Newspaper className="mr-2 h-4 w-4"/>Read</Link></Button>
-                    <Button variant="outline">Sources</Button>
+                    <Button variant="outline"><BookOpen/>Sources</Button>
                 </CardContent>
               </Card>
             </div>

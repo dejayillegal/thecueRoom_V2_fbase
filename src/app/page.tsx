@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import SignupForm from '@/components/signup-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ArrowRight, UserPlus } from 'lucide-react';
 
 
 export default function Home() {
@@ -31,7 +32,10 @@ export default function Home() {
             <div className="flex gap-4">
                <Dialog>
                 <DialogTrigger asChild>
-                  <Button size="lg">Join the Community</Button>
+                  <Button size="lg">
+                    <UserPlus />
+                    Join the Community
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -44,6 +48,7 @@ export default function Home() {
                 </DialogContent>
               </Dialog>
               <Button size="lg" variant="outline">
+                <ArrowRight />
                 Learn More
               </Button>
             </div>

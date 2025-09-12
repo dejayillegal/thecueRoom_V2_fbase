@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,10 @@ export default function LoginForm() {
               <span>Logging in...</span>
             </>
           ) : (
-            "Login"
+            <>
+              <LogIn />
+              Login
+            </>
           )}
         </Button>
       </form>

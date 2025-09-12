@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import LoginForm from './login-form';
 import SignupForm from './signup-form';
+import { LogIn, UserPlus } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -24,7 +25,10 @@ export default function Header() {
       <div className="flex items-center gap-4">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost">Login</Button>
+            <Button variant="ghost">
+              <LogIn />
+              Login
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -38,7 +42,10 @@ export default function Header() {
         </Dialog>
         <Dialog>
           <DialogTrigger asChild>
-            <Button>Sign Up</Button>
+            <Button>
+              <UserPlus />
+              Sign Up
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>

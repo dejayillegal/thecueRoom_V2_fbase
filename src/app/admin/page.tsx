@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
 
 export default function AdminPage() {
   return (
@@ -34,7 +35,10 @@ export default function AdminPage() {
                 <Input placeholder="Region (e.g., Global)" />
                 <Input placeholder="Name (e.g., Resident Advisor)" />
                 <Input placeholder="Feed URL" className="sm:col-span-2" />
-                 <Button type="submit">Add Feed</Button>
+                 <Button type="submit">
+                  <Plus />
+                  Add Feed
+                </Button>
               </form>
             </div>
 

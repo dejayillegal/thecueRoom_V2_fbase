@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Clock, UserCheck } from "lucide-react";
+import { Loader2, Clock, UserCheck, UserPlus, RefreshCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,7 +106,10 @@ export default function SignupForm() {
          <Button onClick={() => {
            setResult(null);
            form.reset();
-         }}>Start Over</Button>
+         }}>
+          <RefreshCcw />
+          Start Over
+        </Button>
       </div>
     );
   }
@@ -209,7 +212,10 @@ export default function SignupForm() {
               <span>Verifying...</span>
             </>
           ) : (
-            "Create Account"
+            <>
+              <UserPlus />
+              Create Account
+            </>
           )}
         </Button>
       </form>
