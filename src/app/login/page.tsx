@@ -1,17 +1,16 @@
+
 'use client';
 
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/logo";
 import Link from "next/link";
 
-export default function SignIn() {
+function SignIn({ next }: { next: string }) {
   const router = useRouter();
-  const sp = useSearchParams();
-  const next = sp.get("next") || "/dashboard";
 
   async function handleGoogle() {
     try {
@@ -61,4 +60,11 @@ export default function SignIn() {
       </div>
     </div>
   );
+}
+
+// This is a server component that extracts the search param on the server
+// and passes it as a simple prop to the client component.
+export default function LoginPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+  const next = typeof searchParams.next === 'string' ? searchParams.next : '/dashboard';
+  return <SignIn next={next} />;
 }
