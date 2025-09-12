@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Save, Trash2, Pencil, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { getCoverArtConfig, setCoverArtConfig } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +35,8 @@ export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [rssFeeds, setRssFeeds] = useState<RssFeed[]>([]);
-  
+  const [isPending, startTransition] = useTransition();
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<RssFeed | null>(null);
 
@@ -55,7 +56,6 @@ export default function AdminPage() {
   });
 
   const fetchAllData = async () => {
-    setIsLoading(true);
     try {
       const [config, feeds] = await Promise.all([
         getCoverArtConfig(),
@@ -77,8 +77,9 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    setIsLoading(true);
     fetchAllData();
-  }, [toast]);
+  }, []);
 
   const handleSaveConfig = async () => {
     if (!imageModel) return;
@@ -100,7 +101,7 @@ export default function AdminPage() {
   };
 
   const handleAddFeed = async (data: NewFeedForm) => {
-    try {
+    startTransition(async () => {
       const result = await addFeed(data);
       if (result.success) {
         toast({
@@ -111,16 +112,14 @@ export default function AdminPage() {
         newFeedForm.reset();
         await fetchAllData();
       } else {
-        throw new Error(result.error || "Server action failed.");
+        toast({
+          variant: "destructive",
+          title: "Error Adding Feed",
+          description: result.error || 'An unknown error occurred.',
+          icon: <XCircle />,
+        });
       }
-    } catch (error) {
-       toast({
-        variant: "destructive",
-        title: "Error Adding Feed",
-        description: `${error instanceof Error ? error.message : 'An unknown error occurred.'}`,
-        icon: <XCircle />,
-      });
-    }
+    });
   }
 
   const handleDeleteClick = (feed: RssFeed) => {
@@ -129,30 +128,28 @@ export default function AdminPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (feedToDelete) {
-      try {
-        const result = await deleteFeed(feedToDelete.url);
+    if (feedToDelete?.id) {
+      startTransition(async () => {
+        const result = await deleteFeed(feedToDelete.id!);
         if (result.success) {
             toast({
               title: "Feed Deleted",
               description: `"${feedToDelete.name}" has been removed.`,
               icon: <CheckCircle />,
             });
-            await fetchAllData(); // Re-fetch to get the latest state from server
+            await fetchAllData();
         } else {
-            throw new Error(result.error || "Server action failed.");
+             toast({
+              variant: "destructive",
+              title: "Error",
+              description: `Could not delete feed. ${result.error || ''}`,
+              icon: <XCircle />,
+            });
         }
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: `Could not delete feed. ${error instanceof Error ? error.message : ''}`,
-          icon: <XCircle />,
-        });
-      }
+        setIsDeleteDialogOpen(false);
+        setFeedToDelete(null);
+      });
     }
-    setIsDeleteDialogOpen(false);
-    setFeedToDelete(null);
   };
 
   const handleEditClick = (feed: RssFeed) => {
@@ -162,29 +159,27 @@ export default function AdminPage() {
 
   const handleEditConfirm = async (updatedFeed: RssFeed) => {
     if (updatedFeed) {
-       try {
-        const result = await updateFeed(updatedFeed);
-        if (result.success) {
-            toast({
-              title: "Feed Updated",
-              description: `"${updatedFeed.name}" has been updated.`,
-              icon: <CheckCircle />,
-            });
-            await fetchAllData(); // Re-fetch to get the latest state from server
-        } else {
-            throw new Error(result.error || "Server action failed.");
-        }
-      } catch (error) {
-         toast({
-          variant: "destructive",
-          title: "Error",
-          description: `Could not update feed. ${error instanceof Error ? error.message : ''}`,
-          icon: <XCircle />,
-        });
-      }
+       startTransition(async () => {
+          const result = await updateFeed(updatedFeed);
+          if (result.success) {
+              toast({
+                title: "Feed Updated",
+                description: `"${updatedFeed.name}" has been updated.`,
+                icon: <CheckCircle />,
+              });
+              await fetchAllData();
+          } else {
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: `Could not update feed. ${result.error || ''}`,
+                icon: <XCircle />,
+              });
+          }
+          setIsEditDialogOpen(false);
+          setFeedToEdit(null);
+       });
     }
-    setIsEditDialogOpen(false);
-    setFeedToEdit(null);
   };
 
 
@@ -227,6 +222,7 @@ export default function AdminPage() {
                   <RadioGroup
                     value={imageModel ?? 'free'}
                     onValueChange={setImageModel}
+                    disabled={isPending}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="premium" id="premium" />
@@ -237,7 +233,7 @@ export default function AdminPage() {
                       <Label htmlFor="free">Free (Seeded Placeholder)</Label>
                     </div>
                   </RadioGroup>
-                  <Button onClick={handleSaveConfig}>
+                  <Button onClick={handleSaveConfig} disabled={isPending}>
                     <Save className="mr-2 h-4 w-4" />
                     Save Configuration
                   </Button>
@@ -272,7 +268,7 @@ export default function AdminPage() {
                     <FormField control={newFeedForm.control} name="url" render={({ field }) => (
                       <FormItem><FormControl><Input placeholder="Feed URL" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <Button type="submit" className="w-full" disabled={newFeedForm.formState.isSubmitting}>
+                    <Button type="submit" className="w-full" disabled={isPending || newFeedForm.formState.isSubmitting}>
                       <Plus />
                       Add Feed
                     </Button>
@@ -294,16 +290,16 @@ export default function AdminPage() {
                           </TableHeader>
                           <TableBody>
                           {rssFeeds.map((feed) => (
-                              <TableRow key={feed.url} className="group">
+                              <TableRow key={feed.id} className="group">
                                 <TableCell className="font-medium text-xs py-2">{feed.name}</TableCell>
                                 <TableCell className="py-2"><Badge variant="outline">{feed.category}</Badge></TableCell>
                                 <TableCell className="py-2"><Badge variant="secondary">{feed.region}</Badge></TableCell>
                                 <TableCell className="text-right py-2">
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end gap-2">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(feed)}>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditClick(feed)} disabled={isPending}>
                                             <Pencil className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteClick(feed)}>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDeleteClick(feed)} disabled={isPending}>
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </div>
@@ -323,6 +319,7 @@ export default function AdminPage() {
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
         feedName={feedToDelete?.name || ''}
+        isPending={isPending}
       />
       {feedToEdit && (
         <EditFeedDialog
@@ -330,6 +327,7 @@ export default function AdminPage() {
           onOpenChange={setIsEditDialogOpen}
           onConfirm={handleEditConfirm}
           feed={feedToEdit}
+          isPending={isPending}
         />
       )}
     </div>

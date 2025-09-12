@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RssFeed } from '@/lib/rss-feeds';
+import type { RssFeed } from '@/lib/rss-feeds';
 import {
   Dialog,
   DialogContent,
@@ -21,9 +21,10 @@ interface EditFeedDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (updatedFeed: RssFeed) => void;
   feed: RssFeed;
+  isPending: boolean;
 }
 
-export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed }: EditFeedDialogProps) {
+export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed, isPending }: EditFeedDialogProps) {
   const [editedFeed, setEditedFeed] = useState<RssFeed>(feed);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed }: 
               value={editedFeed.name}
               onChange={handleInputChange}
               className="col-span-3"
+              disabled={isPending}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -71,6 +73,7 @@ export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed }: 
               value={editedFeed.category}
               onChange={handleInputChange}
               className="col-span-3"
+              disabled={isPending}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -83,6 +86,7 @@ export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed }: 
               value={editedFeed.region}
               onChange={handleInputChange}
               className="col-span-3"
+              disabled={isPending}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -100,11 +104,11 @@ export default function EditFeedDialog({ open, onOpenChange, onConfirm, feed }: 
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             <X /> Cancel
           </Button>
-          <Button onClick={handleConfirm}>
-            <Save /> Save Changes
+          <Button onClick={handleConfirm} disabled={isPending}>
+            <Save /> {isPending ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

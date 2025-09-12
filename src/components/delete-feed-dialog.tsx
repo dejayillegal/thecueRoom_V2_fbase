@@ -18,9 +18,10 @@ interface DeleteFeedDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   feedName: string;
+  isPending: boolean;
 }
 
-export default function DeleteFeedDialog({ open, onOpenChange, onConfirm, feedName }: DeleteFeedDialogProps) {
+export default function DeleteFeedDialog({ open, onOpenChange, onConfirm, feedName, isPending }: DeleteFeedDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -33,12 +34,13 @@ export default function DeleteFeedDialog({ open, onOpenChange, onConfirm, feedNa
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className={buttonVariants({ variant: "destructive" })}
+            disabled={isPending}
           >
-            Continue
+            {isPending ? 'Deleting...' : 'Continue'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

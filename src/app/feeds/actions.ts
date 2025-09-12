@@ -1,21 +1,27 @@
 
 'use server';
 
-import { getFeedsFromStore, updateFeedInStore, deleteFeedFromStore, addFeedToStore } from '@/lib/feed-store';
-import { RssFeed } from '@/lib/rss-feeds';
+import { db } from '@/lib/firebase-admin';
+import type { RssFeed } from '@/lib/rss-feeds';
 import { revalidatePath } from 'next/cache';
+import { getEnabledFeeds } from '@/feeds/config';
 
 export async function getFeeds(): Promise<RssFeed[]> {
-  // This now calls the server-side in-memory store.
-  return getFeedsFromStore();
+  try {
+    const feeds = await getEnabledFeeds();
+    // Sort feeds by name for consistent display
+    return feeds.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    console.error("Failed to get feeds from Firestore", error);
+    return [];
+  }
 }
 
-export async function addFeed(newFeed: RssFeed): Promise<{ success: boolean; error?: string }> {
+export async function addFeed(newFeed: { name: string; url: string; category: string; region: string; }): Promise<{ success: boolean; error?: string }> {
     try {
-        console.log(`Server Action: Persisting new feed ${newFeed.url}`);
-        addFeedToStore(newFeed);
+        await db.collection("news_feeds").add({ ...newFeed, enabled: true, createdAt: new Date() });
         revalidatePath('/admin');
-        console.log("Path revalidated. New feed has been persisted.");
+        revalidatePath('/news');
         return { success: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -25,14 +31,14 @@ export async function addFeed(newFeed: RssFeed): Promise<{ success: boolean; err
 }
 
 export async function updateFeed(updatedFeed: RssFeed): Promise<{ success: boolean; error?: string }> {
+  if (!updatedFeed.id) {
+    return { success: false, error: "Feed ID is missing." };
+  }
   try {
-    console.log(`Server Action: Persisting update for feed ${updatedFeed.url}`);
-    
-    // Call the server-side store to update the data.
-    updateFeedInStore(updatedFeed);
-
+    const { id, ...data } = updatedFeed;
+    await db.collection("news_feeds").doc(id).update(data);
     revalidatePath('/admin');
-    console.log("Path revalidated. Change has been persisted.");
+    revalidatePath('/news');
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -41,15 +47,14 @@ export async function updateFeed(updatedFeed: RssFeed): Promise<{ success: boole
   }
 }
 
-export async function deleteFeed(feedUrl: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteFeed(feedId: string): Promise<{ success: boolean; error?: string }> {
+   if (!feedId) {
+    return { success: false, error: "Feed ID is missing." };
+  }
   try {
-    console.log(`Server Action: Persisting deletion for feed ${feedUrl}`);
-
-    // Call the server-side store to delete the data.
-    deleteFeedFromStore(feedUrl);
-
+    await db.collection("news_feeds").doc(feedId).delete();
     revalidatePath('/admin');
-    console.log("Path revalidated. Deletion has been persisted.");
+    revalidatePath('/news');
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred.";
