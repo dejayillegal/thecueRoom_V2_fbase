@@ -1,7 +1,9 @@
+
 'use server';
 import "server-only";
 import { NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
+import { getAuth } from "firebase-admin/auth";
+import "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,18 +17,9 @@ export async function GET(req: Request) {
   }
 
   try {
-    const userRecord = await adminAuth.getUserByEmail(email);
-    const { uid, customClaims } = userRecord;
-    return NextResponse.json({
-      found: true,
-      uid,
-      email,
-      customClaims: customClaims || null,
-    });
-  } catch (error: any) {
-    if (error.code === 'auth/user-not-found') {
-      return NextResponse.json({ found: false, email, error: "User not found in this Firebase project." }, { status: 404 });
-    }
-    return NextResponse.json({ found: false, email, error: error.message }, { status: 500 });
+    const u = await getAuth().getUserByEmail(email);
+    return NextResponse.json({ uid: u.uid, email: u.email, disabled: u.disabled, claims: u.customClaims ?? {} });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || String(e) }, { status: 404 });
   }
 }

@@ -53,20 +53,18 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
     try {
-      const emailTrim = email.trim();
-      const pass = password; // don't trim passwords
-      await signInWithEmailAndPassword(auth, emailTrim, pass);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       await afterAuth();
     } catch (e: any) {
       const fe = e as FirebaseError;
-      console.error("Email sign-in error:", fe?.code, fe?.message, fe);
+      console.error("Email sign-in error:", fe?.code, fe?.message);
       toast({
-        variant: 'destructive',
-        title: 'Login Failed',
+        variant: "destructive",
+        title: "Login Failed",
         description:
-          fe?.code === 'auth/invalid-credential'
-            ? 'Invalid email or password, or the sign-in method is disabled.'
-            : fe?.message || 'Could not sign in. Please try again.',
+          fe?.code === "auth/invalid-credential"
+            ? "Invalid email or password, or Email/Password sign-in is disabled."
+            : fe?.message || "Could not sign in. Please try again.",
       });
       setLoading(false);
     }
