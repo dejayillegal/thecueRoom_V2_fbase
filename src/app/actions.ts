@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { autoVerifyUsers } from "@/ai/flows/auto-verify-users";
+import { generateCoverArt, GenerateCoverArtInput } from "@/ai/flows/generate-cover-art";
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -29,7 +30,6 @@ export async function handleSignup(data: unknown): Promise<ActionResult> {
 
   const { profileUrls, contentPatterns } = validationResult.data;
   
-  // Split textarea URLs into an array of strings, trimming whitespace and filtering out empty lines.
   const urls = profileUrls.split('\n').map(url => url.trim()).filter(Boolean);
 
   if (urls.length === 0) {
@@ -41,22 +41,6 @@ export async function handleSignup(data: unknown): Promise<ActionResult> {
       profileUrls: urls,
       contentPatterns: contentPatterns || "",
     });
-
-    // Here you would typically save the user to your database (e.g., Supabase)
-    // with the determined verification_status.
-    // For this example, we'll just return the result.
-    
-    // const { data: user, error } = await supabase.auth.signUp({
-    //   email: validationResult.data.email,
-    //   password: validationResult.data.password,
-    //   options: {
-    //     data: {
-    //       verification_status: verificationResult.isVerified ? 'verified' : 'pending',
-    //       newsletter_opt_in: validationResult.data.newsletter,
-    //       // ... other profile data
-    //     }
-    //   }
-    // })
 
     if (verificationResult.isVerified) {
       return {
@@ -79,4 +63,47 @@ export async function handleSignup(data: unknown): Promise<ActionResult> {
       message: "An error occurred during verification. Please try again later.",
     };
   }
+}
+
+
+// Action for Cover Art Generation
+const coverArtSchema = z.object({
+    prompt: z.string().min(5, "Prompt must be at least 5 characters long."),
+    aspectRatio: z.enum(['1:1', '16:9', '9:16']),
+});
+
+type CoverArtResult = {
+  status: "success" | "error";
+  message: string;
+  imageUrl?: string;
+  revisedPrompt?: string;
+};
+
+export async function handleCoverArtGeneration(data: unknown): Promise<CoverArtResult> {
+    const validationResult = coverArtSchema.safeParse(data);
+
+    if (!validationResult.success) {
+        return {
+            status: "error",
+            message: "Invalid form data. Please check your inputs.",
+        };
+    }
+
+    try {
+        const input: GenerateCoverArtInput = validationResult.data;
+        const result = await generateCoverArt(input);
+
+        return {
+            status: "success",
+            message: "Cover art generated successfully.",
+            imageUrl: result.imageUrl,
+            revisedPrompt: result.revisedPrompt,
+        };
+    } catch (error) {
+        console.error("Cover art generation failed:", error);
+        return {
+            status: "error",
+            message: "An error occurred during image generation. Please try again later.",
+        };
+    }
 }
