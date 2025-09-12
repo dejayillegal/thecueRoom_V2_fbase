@@ -124,7 +124,7 @@ const generateCoverArtFlow = ai.defineFlow(
       console.error("AI generation failed:", error.message);
       
       // Check if the error is due to billing
-      const isBillingError = error.message?.includes("Imagen API is only accessible to billed users");
+      const isBillingError = error.message?.includes("billing");
       
       if (isBillingError) {
           console.log("Billing error detected. Falling back to seeded placeholder generation.");
