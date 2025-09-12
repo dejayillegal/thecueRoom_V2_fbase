@@ -1,18 +1,18 @@
-
-import "server-only";
 import { NextResponse } from "next/server";
-import { adminApp } from "@/lib/firebase-admin";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+import { adminAuth } from "@/lib/firebase-admin";
 
 export async function GET() {
-  const app = adminApp();
-  return NextResponse.json({
-    clientProjectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    env_FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-    admin_app_projectId: app.options.projectId,
-    env_ADC: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || null,
-    hasServiceAccount: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_B64 || process.env.FIREBASE_SERVICE_ACCOUNT_JSON),
-  });
+  try {
+    const auth = adminAuth();
+    // This object exposes the projectId the Admin SDK believes it’s using
+    // @ts-ignore accessing private fields is only for debugging
+    const projectId = auth.app.options.projectId || auth.app.options.credential?.projectId;
+    return NextResponse.json({
+      adminProjectId: projectId ?? "<unknown>",
+      clientProjectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      googleApplicationCredentials: Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+    });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message }, { status: 500 });
+  }
 }

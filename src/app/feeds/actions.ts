@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
 import type { RssFeed } from '@/lib/rss-feeds';
 import { revalidateTag } from 'next/cache';
 import { safe } from '@/lib/actions';
@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 export async function getFeeds() {
   return safe(async () => {
-    const db = await getDb();
+    const db = adminDb();
     if (!db) {
       console.warn("Firestore is not available, returning empty feeds list.");
       return [];
@@ -34,7 +34,7 @@ const AddFeedSchema = z.object({
 export async function addFeed(raw: unknown) {
   return safe(async () => {
     await requireAdmin();
-    const db = await getDb();
+    const db = adminDb();
     if (!db) throw new Error("Database not available.");
     const input = AddFeedSchema.parse(raw);
     const docRef = await db.collection("news_feeds").add({ ...input, enabled: true, createdAt: new Date() });
@@ -50,7 +50,7 @@ const UpdateFeedSchema = AddFeedSchema.partial().extend({
 export async function updateFeed(id: string, raw: unknown) {
   return safe(async () => {
     await requireAdmin();
-    const db = await getDb();
+    const db = adminDb();
     if (!db) throw new Error("Database not available.");
     if (!id) throw new Error("Feed ID is required.");
     const input = UpdateFeedSchema.parse(raw);
@@ -63,7 +63,7 @@ export async function updateFeed(id: string, raw: unknown) {
 export async function deleteFeed(id: string) {
   return safe(async () => {
     await requireAdmin();
-    const db = await getDb();
+    const db = adminDb();
     if (!db) throw new Error("Database not available.");
     if (!id) throw new Error("Feed ID is required.");
     await db.collection("news_feeds").doc(id).delete();

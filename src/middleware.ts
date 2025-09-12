@@ -3,11 +3,15 @@ import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
-  const protectedRoute = url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/admin");
+  const protectedRoute =
+    url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/admin");
 
   if (protectedRoute) {
-    const hasFlag = (req.headers.get("cookie") || "").includes("tcr_auth=1");
-    if (!hasFlag) {
+    const cookieHeader = req.headers.get("cookie") || "";
+    // Quick flag set by our session route
+    const hasFlag = cookieHeader.includes("tcr_auth=1");
+    const hasSession = cookieHeader.includes("__session=");
+    if (!(hasFlag && hasSession)) {
       const next = encodeURIComponent(url.pathname + url.search);
       url.pathname = "/login";
       url.search = `?next=${next}`;
@@ -17,4 +21,6 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/dashboard/:path*", "/admin/:path*"] };
+export const config = {
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
+};

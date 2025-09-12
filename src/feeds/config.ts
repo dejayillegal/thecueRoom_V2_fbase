@@ -1,5 +1,5 @@
 
-import { getDb, isDbAvailable, markDbBroken } from "@/lib/firebase-admin";
+import { adminDb } from "@/lib/firebase-admin";
 import { z } from "zod";
 
 export const NewsSettingsSchema = z.object({
@@ -22,15 +22,13 @@ function settingsFromEnv(): NewsSettings {
 }
 
 export async function getNewsSettings(): Promise<NewsSettings> {
-  if (!await isDbAvailable()) return settingsFromEnv();
-  const db = await getDb();
-  if (!db) return settingsFromEnv();
   try {
+    const db = adminDb();
     const snap = await db.collection("config").doc("news").get();
     const raw = snap.exists ? snap.data() : {};
     return { ...settingsFromEnv(), ...(raw as Partial<NewsSettings>) };
-  } catch {
-    await markDbBroken();
+  } catch(e) {
+    console.warn("[feeds/config] Failed to get news settings from Firestore, falling back to env.", e);
     return settingsFromEnv();
   }
 }
@@ -54,15 +52,13 @@ const DEFAULT_FEEDS: Feed[] = [
 ];
 
 export async function getEnabledFeeds(): Promise<Feed[]> {
-  if (!await isDbAvailable()) return DEFAULT_FEEDS;
-  const db = await getDb();
-  if (!db) return DEFAULT_FEEDS;
   try {
+    const db = adminDb();
     const snap = await db.collection("news_feeds").where("enabled", "==", true).get();
     if (snap.empty) return DEFAULT_FEEDS;
     return snap.docs.map(d => ({ id: d.id, ...(d.data() as Feed) }));
-  } catch {
-    await markDbBroken();
+  } catch(e) {
+    console.warn("[feeds/config] Failed to get enabled feeds from Firestore, falling back to defaults.", e);
     return DEFAULT_FEEDS;
   }
 }

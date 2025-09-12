@@ -1,44 +1,44 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { adminAuth, adminProjectId } from "@/lib/firebase-admin";
+import { cookies } from "next/headers";
+import { adminAuth } from "@/lib/firebase-admin";
 
 export async function POST(req: Request) {
   try {
     const { idToken } = await req.json();
-    if (!idToken) return NextResponse.json({ error: "missing idToken" }, { status: 400 });
 
-    const decoded = await adminAuth().verifyIdToken(idToken, true);
-
-    // Extra safety: aud must match our Admin project
-    const expected = adminProjectId();
-    if (decoded.aud !== expected) {
-      return NextResponse.json(
-        { error: "invalid idToken", cause: "audience mismatch", aud: decoded.aud, expected },
-        { status: 401 }
-      );
+    if (!idToken) {
+      return NextResponse.json({ error: "missing idToken" }, { status: 400 });
     }
 
-    // Set session cookie (keep it separate from __session if you prefer)
+    // This must match the same project as the client
+    const decoded = await adminAuth().verifyIdToken(idToken, true);
+
+    // Set HttpOnly session cookie (short TTL is fine; Firebase tokens refresh)
     const cookieStore = cookies();
     cookieStore.set("__session", idToken, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      // optional: 1 day
+      maxAge: 60 * 60 * 24,
     });
-    // light flag for middleware
+    // lightweight flag for middleware
     cookieStore.set("tcr_auth", "1", {
       httpOnly: false,
       secure: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24,
     });
 
-    return new Response(null, { status: 204 });
+    return NextResponse.json({ ok: true, uid: decoded.uid });
   } catch (e: any) {
-    return NextResponse.json({ error: "invalid idToken", cause: e?.message }, { status: 401 });
+    // Surface project mismatch clearly during dev
+    return NextResponse.json(
+      { error: "invalid idToken", cause: e?.message },
+      { status: 401 }
+    );
   }
 }
 
@@ -46,5 +46,5 @@ export async function DELETE() {
   const cookieStore = cookies();
   cookieStore.delete("__session");
   cookieStore.delete("tcr_auth");
-  return new Response(null, { status: 204 });
+  return NextResponse.json({ ok: true });
 }

@@ -11,7 +11,7 @@ export async function requireUser() {
 }
 
 export async function requireAdmin() {
-  const { uid, email, claims } = await requireUser();
-  if (!claims?.admin) throw new Error("Forbidden");
-  return { uid, email, isAdmin: true as const };
+  const me = await requireUser();
+  if (!(me.claims as any)?.admin) throw new Error("Forbidden");
+  return me;
 }
