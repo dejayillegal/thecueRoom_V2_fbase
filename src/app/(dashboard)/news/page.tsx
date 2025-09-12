@@ -10,8 +10,18 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 async function NewsFeed() {
-  // Fetch articles on the server
-  const { articles } = await ingestNews({});
+  let articles: Article[] = [];
+  try {
+    // Fetch articles on the server
+    const response = await ingestNews({});
+    articles = response.articles as Article[];
+  } catch (error) {
+    console.error("Failed to ingest news feed:", error);
+    // Gracefully fail by returning an empty array.
+    // The error boundary and client component will handle the UI.
+    articles = [];
+  }
+
   const categories = [...new Set(articles.map((article: Article) => article.category))];
   return <NewsFeedClient articles={articles} categories={categories} />;
 }
