@@ -30,3 +30,13 @@ export const CustomFeedsSchema = z.record(
     z.array(z.object({ name: z.string(), url: z.string().url() }))
   )
 );
+
+export const IngestNewsInputSchema = z.object({
+  force: z.boolean().optional(),     // allow manual refresh from Admin later
+});
+export type IngestNewsInput = z.infer<typeof IngestNewsInputSchema>;
+
+export const IngestNewsOutputSchema = z.object({
+  articles: z.array(ArticleSchema),
+});
+export type IngestNewsOutput = z.infer<typeof IngestNewsOutputSchema>;
