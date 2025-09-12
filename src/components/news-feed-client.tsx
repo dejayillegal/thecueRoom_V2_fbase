@@ -2,25 +2,27 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import type { Article } from "@/ai/flows/ingest-news";
+import type { Article } from "@/feeds/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { Globe, BookOpen, Music, IndianRupee, Podcast, Library } from "lucide-react";
+import { Globe, BookOpen, Music, IndianRupee, Podcast, Library, HardHat, Waypoints, Mic2 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { formatDistanceToNow } from 'date-fns';
 
 const categoryIcons: { [key: string]: React.ElementType } = {
+  "Music": Mic2,
   "Global Underground": Globe,
-  "India / Asia Underground": IndianRupee,
-  "Gear / Production": Music,
-  "Mixes / Podcasts": Podcast,
-  "Labels / Platforms": Library,
+  "Industry": HardHat,
+  "Guides": Waypoints,
   "default": BookOpen,
 };
 
 function getDeterministicId(str: string) {
     let hash = 0;
+    if (!str || str.length === 0) {
+      return Math.floor(Math.random() * 10000);
+    }
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
         hash = (hash << 5) - hash + char;
@@ -75,17 +77,19 @@ export default function NewsFeedClient({ articles, categories }: { articles: Art
             const CategoryIcon = categoryIcons[article.category] || categoryIcons.default;
             const publishedAt = article.publishedAt ? new Date(article.publishedAt) : new Date();
             const imageSeed = getDeterministicId(article.url);
+            const imageUrl = article.image ? article.image : `https://picsum.photos/seed/${imageSeed}/100/100`;
 
             return (
               <div key={article.url} className="group transition-all duration-300 ease-in-out">
                 <a href={article.url} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-4 p-4 rounded-lg hover:bg-muted/50">
                   <Image
-                    src={`https://picsum.photos/seed/${imageSeed}/100/100`}
+                    src={imageUrl}
                     alt={article.title}
                     width={80}
                     height={80}
                     className="rounded-lg aspect-square object-cover transition-transform duration-300 group-hover:scale-105"
                     data-ai-hint="electronic music"
+                    unoptimized // Use unoptimized for external images that we don't control
                   />
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none group-hover:text-primary">{article.title}</p>

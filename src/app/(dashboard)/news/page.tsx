@@ -4,11 +4,12 @@ import NewsFeedClient from "@/components/news-feed-client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import React, { Suspense } from "react";
+import type { Article } from "@/feeds/types";
 
 async function NewsFeed() {
   // Fetch articles on the server
   const { articles } = await ingestNews({});
-  const categories = [...new Set(articles.map(article => article.category))];
+  const categories = [...new Set(articles.map((article: Article) => article.category))];
   return <NewsFeedClient articles={articles} categories={categories} />;
 }
 

@@ -8,5 +8,5 @@ export type RssFeed = {
 };
 
 // This file now only contains the type definition.
-// The data has been moved to `src/lib/feed-store.ts`
+// The data has been moved to `src/feeds/config.ts`
 // to act as a persistent in-memory database.
