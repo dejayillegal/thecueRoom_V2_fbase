@@ -144,24 +144,36 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
 }
 
 // Retry with exponential backoff; also per-domain jitter to avoid thundering herds
-export async function fetchAllSources(sources: FeedSource[], maxPerSource = 10): Promise<Article[]> {
-  const promises = sources.map(s => fetchOneSource(s).catch(e => {
-      console.error(`Unhandled error in fetchOneSource for ${s.url}:`, e);
-      return [] as Article[]; // Return empty array on critical failure
-  }));
-  const results = await Promise.allSettled(promises);
+export async function fetchAllSources(
+  sources: FeedSource[],
+  maxPerSource = 10,
+  concurrency = 5
+): Promise<Article[]> {
+  const queue = [...sources];
+  const results: Article[][] = [];
 
-  const out: Article[] = [];
-  results.forEach((result) => {
-    if (result.status === 'fulfilled' && result.value) {
-      out.push(...result.value.slice(0, maxPerSource));
-    } else if (result.status === 'rejected') {
-        console.error("A feed fetcher promise was rejected:", result.reason);
+  async function worker() {
+    while (queue.length) {
+      const s = queue.shift()!;
+      // try up to 3 times with backoff
+      let tries = 0;
+      let got: Article[] = [];
+      while (tries < 3 && got.length === 0) {
+        got = await fetchOneSource(s);
+        if (!got.length) {
+          tries++;
+          await new Promise(r => setTimeout(r, 200 * 2 ** tries + Math.random() * 200));
+        }
+      }
+      results.push(got.slice(0, maxPerSource));
     }
-  });
+  }
 
-  return dedupeAndSort(out);
+  // start N workers
+  await Promise.allSettled(Array.from({ length: Math.min(concurrency, sources.length) }, worker));
+  return dedupeAndSort(results.flat());
 }
+
 
 function dedupeAndSort(items: Article[]): Article[] {
   const key = (a: Article) => (a.url || "") + "::" + a.title.trim().toLowerCase();

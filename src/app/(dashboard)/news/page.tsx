@@ -6,6 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { Suspense } from "react";
 import type { Article } from "@/feeds/types";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 async function NewsFeed() {
   // Fetch articles on the server
   const { articles } = await ingestNews({});
