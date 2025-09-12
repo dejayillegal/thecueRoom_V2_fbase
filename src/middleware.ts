@@ -14,10 +14,10 @@ export function middleware(req: NextRequest) {
     const hasFlag = cookieHeader.includes("tcr_auth=1");
     const hasSession = cookieHeader.includes("__session=");
     if (!(hasFlag && hasSession)) {
-      const next = encodeURIComponent(url.pathname + url.search);
-      url.pathname = "/login";
-      url.search = `?next=${next}`;
-      return NextResponse.redirect(url);
+      const redirectUrl = new URL("/login", req.url);
+      const nextPath = url.pathname + url.search;
+      redirectUrl.searchParams.set("next", nextPath);
+      return NextResponse.redirect(redirectUrl);
     }
   }
   return NextResponse.next();
