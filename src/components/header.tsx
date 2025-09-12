@@ -40,7 +40,7 @@ export default function Header() {
           <DialogTrigger asChild>
             <Button>Sign Up</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create your account</DialogTitle>
               <DialogDescription>

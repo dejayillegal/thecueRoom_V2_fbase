@@ -1,6 +1,5 @@
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import SignupForm from '@/components/signup-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 export default function Home() {
@@ -33,14 +33,14 @@ export default function Home() {
                 <DialogTrigger asChild>
                   <Button size="lg">Join the Community</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Create your account</DialogTitle>
-                    <DialogDescription>
-                      Join the community. Your profile will be reviewed for verification.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <SignupForm />
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Create your account</DialogTitle>
+                      <DialogDescription>
+                        Join the community. Your profile will be reviewed for verification.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <SignupForm />
                 </DialogContent>
               </Dialog>
               <Button size="lg" variant="outline">
