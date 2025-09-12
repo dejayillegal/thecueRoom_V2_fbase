@@ -38,7 +38,7 @@ export default function DashboardLayout({
           <SidebarRail />
           <SidebarContent>
             <SidebarHeader>
-                <Link href="/dashboard" className="flex items-center gap-2 group">
+                <Link href="/" className="flex items-center gap-2 group">
                 <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 <span className="font-normal tracking-tight group-data-[collapsible=icon]:hidden transition-transform duration-300 ease-in-out group-hover:-translate-y-0.5">
                   thecueRoom
