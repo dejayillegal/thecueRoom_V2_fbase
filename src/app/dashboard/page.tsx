@@ -85,7 +85,7 @@ export default function DashboardPage() {
                   <CardDescription>Generate striking visuals</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button><ImageIcon className="mr-2 h-4 w-4"/>Open</Button>
+                    <Button asChild><Link href="/cover-art"><ImageIcon className="mr-2 h-4 w-4"/>Open</Link></Button>
                     <Button variant="outline">View</Button>
                 </CardContent>
               </Card>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
                   <CardDescription>Spark the community</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button><PenSquare className="mr-2 h-4 w-4"/>Create</Button>
+                    <Button asChild><Link href="/memes"><PenSquare className="mr-2 h-4 w-4"/>Create</Link></Button>
                     <Button variant="outline">Explore</Button>
                 </CardContent>
               </Card>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                   <CardDescription>Curated underground updates</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button asChild><Link href="/dashboard/news"><Newspaper className="mr-2 h-4 w-4"/>Read</Link></Button>
+                    <Button asChild><Link href="/news"><Newspaper className="mr-2 h-4 w-4"/>Read</Link></Button>
                     <Button variant="outline">Sources</Button>
                 </CardContent>
               </Card>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle>Gigs</CardTitle>
-            <Button variant="outline" size="sm"><Plus className="mr-2 h-4 w-4" /> Add gig</Button>
+            <Button variant="outline" size="sm" asChild><Link href="/gigs"><Plus className="mr-2 h-4 w-4" /> Add gig</Link></Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">News spotlights</h2>
-            <Button variant="outline" size="sm" asChild><Link href="/dashboard/news">View all</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link href="/news">View all</Link></Button>
         </div>
         <div className="space-y-4">
           {newsItems.map((item, index) => (

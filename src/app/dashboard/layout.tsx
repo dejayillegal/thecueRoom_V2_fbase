@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -54,31 +53,31 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard/cover-art" isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
+              <SidebarMenuButton href="/cover-art" isActive={pathname === '/cover-art'} tooltip="Cover Art">
                 <Image />
                 Cover Art
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard/memes" isActive={pathname === '/dashboard/memes'} tooltip="Memes">
+              <SidebarMenuButton href="/memes" isActive={pathname === '/memes'} tooltip="Memes">
                 <Smile />
                 Memes
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard/news" isActive={pathname === '/dashboard/news'} tooltip="News">
+              <SidebarMenuButton href="/news" isActive={pathname === '/news'} tooltip="News">
                 <Newspaper />
                 News
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/gigs" isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
+                <SidebarMenuButton href="/gigs" isActive={pathname === '/gigs'} tooltip="Gigs">
                     <CalendarDays />
                     Gigs
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/genres" isActive={pathname === '/dashboard/genres'} tooltip="Genres">
+                <SidebarMenuButton href="/genres" isActive={pathname === '/genres'} tooltip="Genres">
                     <Music />
                     Genres
                 </SidebarMenuButton>
@@ -86,7 +85,7 @@ export default function DashboardLayout({
           </SidebarMenu>
           <SidebarMenu className='mt-auto'>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard/settings" isActive={pathname === '/dashboard/settings'} tooltip="Settings">
+              <SidebarMenuButton href="/settings" isActive={pathname === '/settings'} tooltip="Settings">
                 <Settings />
                 Settings
               </SidebarMenuButton>
