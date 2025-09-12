@@ -6,9 +6,6 @@ import { getEnabledFeeds, getNewsSettings } from "@/feeds/config";
 import { fetchAllSources } from "@/feeds/fetchers";
 import { readAggregateFresh, saveAggregate } from "@/feeds/store";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 export type IngestNewsInput = { force?: boolean };
 export type IngestNewsOutput = { articles: NewsItem[] };
 

@@ -22,12 +22,3 @@ export const NewsSettingsSchema = z.object({
 });
 
 export type NewsSettings = z.infer<typeof NewsSettingsSchema>;
-
-// This type is maintained for the Admin page client-side form
-export type RssFeed = {
-  category: string;
-  region: string;
-  name: string;
-  url: string;
-  notes?: string;
-};

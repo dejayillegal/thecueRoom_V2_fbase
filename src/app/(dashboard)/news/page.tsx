@@ -17,6 +17,8 @@ async function NewsFeed() {
     articles = response.articles as NewsItem[];
   } catch (error) {
     console.error("Failed to ingest news feed:", error);
+    // In case of a catastrophic failure in ingestNews, return empty array.
+    // The error boundary will catch this if the component itself throws.
     articles = [];
   }
 
