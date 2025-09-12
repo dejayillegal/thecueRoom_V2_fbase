@@ -27,23 +27,52 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
+  async function createSession(idToken: string, maxRetries = 3) {
+    let attempt = 0;
+    let lastError = "";
+    while (attempt < maxRetries) {
+      attempt++;
+      try {
+        const res = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        });
+        if (!res.ok) {
+          lastError = await res.text();  // capture error response
+          throw new Error(`Session request failed with status ${res.status}`);
+        }
+        // Success: session created
+        return;
+      } catch (err) {
+        console.error(`Session creation attempt ${attempt} failed:`, err, lastError);
+        if (attempt < maxRetries) {
+          // Exponential backoff before next retry
+          const backoff = Math.pow(2, attempt) * 200;
+          await new Promise(res => setTimeout(res, backoff));
+          continue;
+        }
+        // Out of retries: throw final error
+        throw new Error(lastError || (err as Error).message || 'Failed to establish session');
+      }
+    }
+  }
+
   async function afterAuth() {
     try {
-      if (!auth.currentUser) throw new Error("No user found after authentication.");
-      const idToken = await auth.currentUser.getIdToken(true);
-      const res = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-      if (!res.ok) {
-        const errorBody = await res.text();
-        throw new Error(`Failed to create session: ${errorBody}`);
+      if (!auth.currentUser) {
+        throw new Error("No user found after authentication.");
       }
+      const idToken = await auth.currentUser.getIdToken(true);
+      await createSession(idToken);  // attempt to create session with retries
       router.replace(next);
     } catch (e: any) {
       console.error("afterAuth error:", e);
-      toast({ variant: 'destructive', title: 'Session Error', description: 'Could not create a server session. Please try again.' });
+      toast({
+        variant: 'destructive',
+        title: 'Session Error',
+        description: 'Could not create a server session. Please try again.'
+      });
       setLoading(false);
     }
   }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -27,18 +28,43 @@ export default function SignUpPage() {
   const [loading, setLoading] = React.useState(false);
   const [result, setResult] = React.useState<{ status: string; message: string; isVerified?: boolean; } | null>(null);
 
+  async function createSession(idToken: string, maxRetries = 3) {
+    let attempt = 0;
+    let lastError = "";
+    while (attempt < maxRetries) {
+      attempt++;
+      try {
+        const res = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        });
+        if (!res.ok) {
+          lastError = await res.text();  // capture error response
+          throw new Error(`Session request failed with status ${res.status}`);
+        }
+        // Success: session created
+        return;
+      } catch (err) {
+        console.error(`Session creation attempt ${attempt} failed:`, err, lastError);
+        if (attempt < maxRetries) {
+          // Exponential backoff before next retry
+          const backoff = Math.pow(2, attempt) * 200;
+          await new Promise(res => setTimeout(res, backoff));
+          continue;
+        }
+        // Out of retries: throw final error
+        throw new Error(lastError || (err as Error).message || 'Failed to establish session');
+      }
+    }
+  }
+
   async function afterAuth(isGoogleSignup = false) {
     try {
       if (!auth.currentUser) throw new Error("No user found after authentication.");
       const idToken = await auth.currentUser.getIdToken(true);
+      await createSession(idToken);
       
-      const res = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-      if (!res.ok) throw new Error('Failed to create session');
-
       if (!isGoogleSignup) {
         // For email sign-up, we already have the review process from handleSignup
         if (result?.isVerified) {
@@ -47,12 +73,12 @@ export default function SignUpPage() {
         // If not verified, the success message is already shown.
       } else {
         // For Google sign-up, we assume auto-verification for now
-        // or you can add a similar review step.
         toast({ title: 'Account Created!', description: 'Welcome to thecueRoom.'});
         router.replace(next);
       }
 
     } catch (e: any) {
+      console.error("afterAuth (signup) error:", e);
       toast({ variant: 'destructive', title: 'Session Error', description: 'Could not create a server session.' });
       setLoading(false);
     }
