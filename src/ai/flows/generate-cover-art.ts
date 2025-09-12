@@ -3,12 +3,13 @@
  * @fileOverview An AI agent for generating cover art for music releases.
  *
  * - generateCoverArt - A function that handles the cover art generation process.
- * - GenerateCoverArtInput - The input type for the generateCoverArt function.
- * - GenerateCoverArtOutput - The return type for the generateCoverArt function.
+ * - GenerateCoverArtInput - The input type for the generateCoverart function.
+ * - GenerateCoverArtOutput - The return type for the generateCoverart function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { generateThumbnail } from './generate-thumbnail';
 
 const GenerateCoverArtInputSchema = z.object({
   prompt: z.string().describe('The user\'s creative prompt for the cover art.'),
@@ -120,25 +121,23 @@ const generateCoverArtFlow = ai.defineFlow(
       };
 
     } catch (error: any) {
-        console.error("AI generation failed:", error.message);
+      console.error("AI generation failed:", error.message);
+      
+      // Check if the error is due to billing
+      const isBillingError = error.message?.includes("Imagen API is only accessible to billed users");
+      
+      if (isBillingError) {
+          console.log("Billing error detected. Falling back to seeded placeholder generation.");
+          // Use the generate-thumbnail flow as a free fallback.
+          const fallbackResult = await generateThumbnail({ title: input.prompt });
+          return {
+              ...fallbackResult,
+              revisedPrompt: "Using free tier. Enable billing in Google Cloud for advanced AI generation."
+          };
+      }
 
-        // Check if the error is due to billing
-        const isBillingError = error.message && error.message.includes("Imagen API is only accessible to billed users");
-        
-        if (isBillingError) {
-            // Fallback to placeholder image generation if billing is not enabled
-            console.log("Billing error detected. Falling back to placeholder image generation.");
-            const imageSeed = input.prompt.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-            const [width, height] = input.aspectRatio === '16:9' ? [640, 360] : input.aspectRatio === '9:16' ? [360, 640] : [600, 600];
-
-            return {
-                imageUrl: `https://picsum.photos/seed/${imageSeed}/${width}/${height}`,
-                revisedPrompt: "Placeholder generated. Enable billing in Google Cloud to use Imagen for real cover art."
-            };
-        }
-
-        // For other errors, re-throw to be handled by the action
-        throw error;
+      // For other errors, re-throw to be handled by the action
+      throw error;
     }
   }
 );

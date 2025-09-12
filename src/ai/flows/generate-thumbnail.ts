@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateThumbnailInputSchema = z.object({
-  title: z.string().describe('The title of the news article.'),
+  title: z.string().describe('The title of the news article or a prompt for image generation.'),
 });
 export type GenerateThumbnailInput = z.infer<typeof GenerateThumbnailInputSchema>;
 
@@ -26,20 +26,6 @@ export async function generateThumbnail(input: GenerateThumbnailInput): Promise<
   return generateThumbnailFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateThumbnailPrompt',
-  input: {schema: GenerateThumbnailInputSchema},
-  output: {schema: GenerateThumbnailOutputSchema},
-  prompt: `You are an AI assistant that generates a thumbnail image for a news article.
-
-  Generate a thumbnail image that is relevant to the following article title:
-  {{{title}}}
-  
-  The style should be modern, abstract, and suitable for a music-related news feed. Use a dark and moody color palette with vibrant accents.
-  `,
-});
-
-
 const generateThumbnailFlow = ai.defineFlow(
   {
     name: 'generateThumbnailFlow',
@@ -47,19 +33,16 @@ const generateThumbnailFlow = ai.defineFlow(
     outputSchema: GenerateThumbnailOutputSchema,
   },
   async (input) => {
-    // In a real implementation, you would use an image generation model.
-    // For example:
-    // const { media } = await ai.generate({
-    //   model: 'googleai/imagen-4.0-fast-generate-001',
-    //   prompt: `Create a thumbnail for an article titled: "${input.title}". Style: modern, abstract, dark palette, vibrant accents.`,
-    // });
-    // return { imageUrl: media.url, revisedPrompt: "" };
-
-    // For now, we'll return a placeholder to avoid calling the model.
+    // This flow serves as a free fallback for image generation.
+    // It creates a deterministic, seeded image from a placeholder service.
+    // This gives the impression of a unique image for each prompt without cost.
     const imageSeed = input.title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const width = 600;
+    const height = 600;
+    
     return {
-      imageUrl: `https://picsum.photos/seed/${imageSeed}/400/400`,
-      revisedPrompt: "Placeholder prompt for mock generation."
+      imageUrl: `https://picsum.photos/seed/${imageSeed}/${width}/${height}`,
+      revisedPrompt: "Generated with free-tier seeded image service."
     };
   }
 );
