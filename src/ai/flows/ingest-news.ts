@@ -12,26 +12,30 @@ export type IngestNewsOutput = { articles: NewsItem[] };
 export async function ingestNews(input: IngestNewsInput = {}): Promise<IngestNewsOutput> {
   const settings = await getNewsSettings();
 
-  // 1) Cache-first (if we can read; function already returns null on failure)
+  // 1) Cache-first (non-fatal)
   if (!input.force) {
-    const cached = await readAggregateFresh(Math.min(settings.STALE_FALLBACK_MS, 30 * 60_000));
-    if (cached?.length) return { articles: cached };
+    try {
+      const cached = await readAggregateFresh(Math.min(settings.STALE_FALLBACK_MS, 30 * 60_000));
+      if (cached?.length) return { articles: cached };
+    } catch { /* should never throw now, but stay safe */ }
   }
 
-  // 2) Live fetch (no Firestore dependency)
+  // 2) Live
   const feeds = await getEnabledFeeds();
   const live = await fetchAllSources(feeds, settings);
 
   if (live.length) {
-    await saveAggregate(live);   // best-effort; no-ops if Firestore unavailable
+    try { await saveAggregate(live); } catch {}
     return { articles: live };
   }
 
-  // 3) stale-if-error
-  const stale = await readAggregateFresh(settings.STALE_FALLBACK_MS);
-  if (stale?.length) return { articles: stale };
+  // 3) Stale-if-error
+  try {
+    const stale = await readAggregateFresh(settings.STALE_FALLBACK_MS);
+    if (stale?.length) return { articles: stale };
+  } catch {}
 
-  // 4) last resort
+  // 4) Safety card
   return {
     articles: [{
       title: "News temporarily slow — showing a safety card",

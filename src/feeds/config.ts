@@ -1,16 +1,15 @@
-import { getDb, isDbAvailable } from "@/lib/firebase-admin";
+import { getDb, isDbAvailable, markDbBroken } from "@/lib/firebase-admin";
 import { z } from "zod";
 
 export const NewsSettingsSchema = z.object({
   GLOBAL_TIMEOUT_MS: z.number().int().positive().default(9000),
   SOURCE_TIMEOUT_MS: z.number().int().positive().default(3500),
   FETCH_CONCURRENCY: z.number().int().min(1).max(16).default(4),
-  STALE_FALLBACK_MS: z.number().int().positive().default(21_600_000), // 6h
+  STALE_FALLBACK_MS: z.number().int().positive().default(21_600_000),
   MAX_PER_SOURCE: z.number().int().min(1).max(50).default(12),
 });
 export type NewsSettings = z.infer<typeof NewsSettingsSchema>;
 
-// Pull from env first; fall back to defaults
 function settingsFromEnv(): NewsSettings {
   return NewsSettingsSchema.parse({
     GLOBAL_TIMEOUT_MS: Number(process.env.NEWS_GLOBAL_TIMEOUT_MS) || undefined,
@@ -22,20 +21,14 @@ function settingsFromEnv(): NewsSettings {
 }
 
 export async function getNewsSettings(): Promise<NewsSettings> {
-  // If Firestore isn’t usable, return env/defaults instantly.
   if (!isDbAvailable()) return settingsFromEnv();
-
   const db = getDb()!;
   try {
     const snap = await db.collection("config").doc("news").get();
     const raw = snap.exists ? snap.data() : {};
-    // Merge Firestore values over env/defaults
-    return NewsSettingsSchema.merge(NewsSettingsSchema.partial()).parse({
-      ...settingsFromEnv(),
-      ...raw,
-    });
+    return { ...settingsFromEnv(), ...(raw as Partial<NewsSettings>) };
   } catch {
-    // On any read/ADC error, don’t throw — use env/defaults.
+    markDbBroken();
     return settingsFromEnv();
   }
 }
@@ -49,7 +42,6 @@ export type Feed = {
   enabled?: boolean;
 };
 
-// Minimal safe defaults if Firestore isn’t reachable.
 const DEFAULT_FEEDS: Feed[] = [
   { name: "Mixmag", url: "https://mixmag.net/rss", category: "Music", region: "Global" },
   { name: "DJ Mag", url: "https://djmag.com/rss.xml", category: "Music", region: "Global" },
@@ -61,13 +53,13 @@ const DEFAULT_FEEDS: Feed[] = [
 
 export async function getEnabledFeeds(): Promise<Feed[]> {
   if (!isDbAvailable()) return DEFAULT_FEEDS;
-
   const db = getDb()!;
   try {
     const snap = await db.collection("news_feeds").where("enabled", "==", true).get();
     if (snap.empty) return DEFAULT_FEEDS;
     return snap.docs.map(d => ({ id: d.id, ...(d.data() as Feed) }));
   } catch {
-    return DEFAULT_FEEDS; // never throw — keep news flowing
+    markDbBroken();
+    return DEFAULT_FEEDS;
   }
 }

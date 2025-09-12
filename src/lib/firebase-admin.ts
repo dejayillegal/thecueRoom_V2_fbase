@@ -13,10 +13,27 @@ declare global {
   var __tcrDbConfigured: boolean | undefined;
   // eslint-disable-next-line no-var
   var __tcrDbInitError: Error | null | undefined;
+  // eslint-disable-next-line no-var
+  var __tcrDbBroken: boolean | undefined;
 }
 
-// Try to init Admin SDK; if it fails, remember the failure and run without Firestore.
+// Allow forcing Firestore off (useful in Studio/Workstations)
+function isDisabledByEnv() {
+  const v =
+    process.env.TCR_FIRESTORE_DISABLED ??
+    process.env.FIRESTORE_DISABLED ??
+    "";
+  return ["1", "true", "yes"].includes(String(v).toLowerCase());
+}
+
 function initAdmin(): { app: App | null; db: Firestore | null } {
+  if (isDisabledByEnv()) {
+    globalThis.__tcrAdminApp = null;
+    globalThis.__tcrDb = null;
+    globalThis.__tcrDbInitError = null;
+    return { app: null, db: null };
+  }
+
   try {
     const app =
       globalThis.__tcrAdminApp ??
@@ -35,28 +52,37 @@ function initAdmin(): { app: App | null; db: Firestore | null } {
       try {
         db.settings({ ignoreUndefinedProperties: true });
       } catch {
-        /* settings can only be called once; ignore repeat/late calls */
+        // settings() may have been called already — ignore
       }
       globalThis.__tcrDbConfigured = true;
     }
+
     globalThis.__tcrDbInitError = null;
     return { app, db };
   } catch (e: any) {
-    globalThis.__tcrDbInitError = e;
     globalThis.__tcrAdminApp = null;
     globalThis.__tcrDb = null;
+    globalThis.__tcrDbInitError = e;
     return { app: null, db: null };
   }
 }
 
-const { db: _db } = initAdmin();
+const _inited = initAdmin();
 
 export function getDb(): Firestore | null {
-  return globalThis.__tcrDb ?? _db ?? null;
+  if (isDisabledByEnv()) return null;
+  if (globalThis.__tcrDbBroken) return null;
+  return globalThis.__tcrDb ?? _inited.db ?? null;
 }
+
 export function isDbAvailable(): boolean {
   return !!getDb();
 }
+
+export function markDbBroken() {
+  globalThis.__tcrDbBroken = true;
+}
+
 export function getDbInitError(): Error | null {
   return globalThis.__tcrDbInitError ?? null;
 }

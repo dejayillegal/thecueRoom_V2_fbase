@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/firebase-admin";
+import { getDb, markDbBroken } from "@/lib/firebase-admin";
 import type { NewsItem } from "./types";
 
 function sanitize(item: Partial<NewsItem>): NewsItem {
@@ -22,7 +22,7 @@ export async function saveAggregate(items: NewsItem[]) {
       { merge: true }
     );
   } catch {
-    /* ignore cache errors */
+    markDbBroken(); // stop future attempts this boot
   }
 }
 
@@ -37,6 +37,7 @@ export async function readAggregateFresh(ttlMs: number): Promise<NewsItem[] | nu
     if (Date.now() - ts.getTime() > ttlMs) return null;
     return (data.items as NewsItem[]) ?? null;
   } catch {
+    markDbBroken();
     return null;
   }
 }
