@@ -1,76 +1,54 @@
-// DO NOT add 'use server' here.
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-import { getAuth } from "firebase-admin/auth";
-import "@/lib/firebase-admin"; // singleton admin init
-import { ADMIN_PROJECT_ID } from "@/lib/firebase-admin";
+import { NextRequest, NextResponse } from "next/server";
+import { adminAuth, currentServerProjectId } from "@/lib/firebase-admin";
 
-const SESSION_COOKIE = "__session";
-const FLAG_COOKIE = "tcr_auth";
+export const runtime = "nodejs";
 
-function isSecureReq() {
-  const h = headers();
-  const xfProto = h.get("x-forwarded-proto");
-  return xfProto === "https" || process.env.NODE_ENV === "production";
-}
+const SESSION_COOKIE = "__session";        // HttpOnly; used by server guards
+const FLAG_COOKIE = "tcr_auth";            // Non-HttpOnly; for middleware redirects
+const ONE_WEEK = 60 * 60 * 24 * 7;
 
-export async function POST(req: Request) {
-  let idToken: string | undefined;
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    idToken = body?.idToken;
+    const { idToken } = await req.json();
     if (!idToken) {
-      return NextResponse.json({ error: "missing idToken" }, { status: 400 });
+      return NextResponse.json({ error: "invalid idToken (missing)" }, { status: 400 });
     }
 
-    const decoded = await getAuth().verifyIdToken(idToken, true);
+    // Verify token against the Admin app's project
+    const decoded = await adminAuth().verifyIdToken(idToken, true);
 
-    const maxAge = Math.min(60 * 60 * 24 * 5, decoded.exp! - decoded.iat!);
-    const c = cookies();
-    const secure = isSecureReq();
-
-    c.set(SESSION_COOKIE, idToken, {
+    const res = NextResponse.json({ ok: true, uid: decoded.uid });
+    res.cookies.set(SESSION_COOKIE, idToken, {
       httpOnly: true,
+      secure: true,
       sameSite: "lax",
-      secure,
       path: "/",
-      maxAge,
+      maxAge: ONE_WEEK,
     });
-    c.set(FLAG_COOKIE, "1", { sameSite: "lax", secure, path: "/", maxAge });
-
-    return NextResponse.json({ ok: true });
+    // middleware uses this lightweight flag (no secrets)
+    res.cookies.set(FLAG_COOKIE, "1", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: ONE_WEEK,
+    });
+    return res;
   } catch (e: any) {
-    // Decode without verifying to show helpful hints
-    let aud: string | undefined;
-    let iss: string | undefined;
-    try {
-      const [, payload] = (idToken || "").split(".");
-      const json =
-        payload && JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
-      aud = json?.aud;
-      iss = json?.iss;
-    } catch {}
-
     return NextResponse.json(
       {
         error: "invalid idToken",
         cause: e?.message,
-        aud,
-        iss,
-        expectedProjectId: ADMIN_PROJECT_ID,
+        expectedProjectId: currentServerProjectId(),
       },
-      { status: 401 }
+      { status: 400 }
     );
   }
 }
 
 export async function DELETE() {
-  const c = cookies();
-  c.delete(SESSION_COOKIE);
-  c.delete(FLAG_COOKIE);
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(SESSION_COOKIE, "", { path: "/", httpOnly: true, expires: new Date(0) });
+  res.cookies.set(FLAG_COOKIE, "", { path: "/", expires: new Date(0) });
+  return res;
 }
-
-// These are fine in a route file (no 'use server' present)
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";

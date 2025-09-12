@@ -350,10 +350,8 @@ function AdminPanel() {
   );
 }
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
-export default async function AdminPage() {
+// This function needs to be async for Next.js to treat it correctly when using server-side auth.
+async function AdminPageWrapper() {
   try {
     await requireAdmin();
   } catch {
@@ -361,3 +359,7 @@ export default async function AdminPage() {
   }
   return <AdminPanel />;
 }
+
+export default AdminPageWrapper;
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';

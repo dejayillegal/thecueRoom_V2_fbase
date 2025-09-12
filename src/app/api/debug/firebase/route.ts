@@ -1,4 +1,3 @@
-
 import "server-only";
 import { NextResponse } from "next/server";
 import { adminApp } from "@/lib/firebase-admin";
@@ -13,6 +12,6 @@ export async function GET() {
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     },
-    admin: { projectId: adminApp.options.projectId },
+    admin: { projectId: adminApp().options.projectId },
   });
 }

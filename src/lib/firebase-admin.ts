@@ -1,83 +1,90 @@
-// DO NOT add 'use server' here. This is a server-only lib.
+// src/lib/firebase-admin.ts
 import "server-only";
-import admin from "firebase-admin";
-import type { Firestore } from 'firebase-admin/firestore';
+import { getApps, initializeApp, applicationDefault, cert, App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __tcrAdminApp: admin.app.App | undefined;
-  var __tcrDbBroken: boolean | undefined;
-  var __tcrDb: unknown | null | undefined;
-  var __tcrDbInitError: Error | null | undefined;
+type SA = { project_id: string; client_email: string; private_key: string };
+
+function readServiceAccount(): SA | null {
+  // Prefer a base64-encoded SA (safe for .env)
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64 || process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (b64) {
+    try { return JSON.parse(Buffer.from(b64, "base64").toString("utf8")); } catch {}
+  }
+  // Or raw JSON if you really must
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (raw) { try { return JSON.parse(raw); } catch {} }
+  return null;
 }
 
-function init() {
-  if (global.__tcrAdminApp) {
-    return { app: global.__tcrAdminApp, db: globalThis.__tcrDb as Firestore | null };
+// Figure out the correct project id, always matching the client app
+function resolveProjectId(sa?: SA | null) {
+  return (
+    sa?.project_id ||
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || // <- keep client+server in lockstep
+    process.env.GOOGLE_CLOUD_PROJECT ||
+    process.env.GCLOUD_PROJECT
+  );
+}
+
+let _app: App | null = null;
+let _db: ReturnType<typeof getFirestore> | null = null;
+
+export function adminApp(): App {
+  if (_app) return _app;
+  const sa = readServiceAccount();
+  const projectId = resolveProjectId(sa);
+
+  const apps = getApps();
+  if (apps.length > 0) {
+    _app = apps[0];
+  } else {
+    _app = initializeApp({
+      credential: sa ? cert(sa) : applicationDefault(),
+      projectId, // <- critical to avoid token "aud" mismatch
+    });
   }
 
-  if (globalThis.__tcrDbBroken) {
-     return { app: undefined, db: null };
-  }
-
-  let app: admin.app.App | undefined;
-  let db: Firestore | null = null;
-  
+  // Firestore safety
+  const db = getFirestore(_app);
   try {
-    const hasInlineSA = !!process.env.FIREBASE_SERVICE_ACCOUNT;
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-
-    const credential = hasInlineSA
-      ? admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!))
-      : admin.credential.applicationDefault();
-
-    if (!admin.apps.length) {
-      admin.initializeApp({ credential, projectId });
-    }
-    
-    app = admin.app();
-
-    try {
-      db = admin.firestore(app);
-      globalThis.__tcrDb = db;
-    } catch(e: any) {
-      db = null;
-      globalThis.__tcrDb = null;
-      globalThis.__tcrDbBroken = true;
-      globalThis.__tcrDbInitError = e;
-    }
-  } catch (e: any) {
-    app = undefined;
-    db = null;
-    console.error("Firebase admin init failed", e);
+    db.settings({ ignoreUndefinedProperties: true });
+  } catch (e) {
+    // This can throw if settings are already applied, which is fine.
   }
-
-  global.__tcrAdminApp = app;
-  return { app, db };
+  _db = db;
+  return _app;
 }
 
-const _inited = init();
+export const adminAuth = () => getAuth(adminApp());
+export const adminDb = () => {
+    if (_db) return _db;
+    adminApp(); // ensures _db is initialized
+    return _db!;
+};
 
-export const adminApp = _inited.app!;
-export const adminAuth = _inited.app ? admin.auth(_inited.app) : null;
+// Small helper for debug/error messages
+export const currentServerProjectId = () => adminApp().options.projectId as string | undefined;
 
-export async function getDb(): Promise<Firestore | null> {
-  if (globalThis.__tcrDbBroken) return null;
-  return globalThis.__tcrDb as Firestore ?? _inited.db;
-}
-
-export async function getDbInitError(): Promise<Error | null> {
-  return globalThis.__tcrDbInitError ?? null;
+export async function getDb(): Promise<ReturnType<typeof getFirestore> | null> {
+    return adminDb();
 }
 
 export async function isDbAvailable(): Promise<boolean> {
-  if (globalThis.__tcrDbBroken) return false;
-  return !!(globalThis.__tcrDb ?? _inited.db);
+    try {
+        await adminDb().listCollections();
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function markDbBroken(): Promise<void> {
-  globalThis.__tcrDbBroken = true;
-  globalThis.__tcrDb = null;
+    // This is now a no-op as we initialize on-demand, but kept for compatibility.
 }
 
-export const ADMIN_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+export async function getDbInitError(): Promise<Error | null> {
+    return null; // Initialization errors would throw directly now.
+}

@@ -1,24 +1,17 @@
-
 'use server';
-
 import "server-only";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase-admin";
 
-export type AdminContext = { uid: string; email?: string; isAdmin: boolean };
-
-export async function requireUser(): Promise<{ uid: string; email?: string; claims: any }> {
+export async function requireUser() {
   const token = cookies().get("__session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  if (!adminAuth) throw new Error("Auth service not available.");
-
-  const decoded = await adminAuth.verifyIdToken(token, true);
-  return { uid: decoded.uid, email: decoded.email ?? undefined, claims: decoded };
+  const decoded = await adminAuth().verifyIdToken(token, true);
+  return { uid: decoded.uid, email: decoded.email, claims: decoded };
 }
 
-export async function requireAdmin(): Promise<AdminContext> {
+export async function requireAdmin() {
   const { uid, email, claims } = await requireUser();
-  const isAdmin = Boolean((claims as any).admin);
-  if (!isAdmin) throw new Error("Forbidden");
-  return { uid, email, isAdmin };
+  if (!claims?.admin) throw new Error("Forbidden");
+  return { uid, email, isAdmin: true as const };
 }
