@@ -43,7 +43,7 @@ export default function DashboardLayout({
                   <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
                     thecueRoom
                   </span>
-                  <span className="text-[0.7rem] text-muted-foreground group-data-[collapsible=icon]:hidden">
+                  <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
                     Underground Music Community
                   </span>
                 </div>
