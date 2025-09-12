@@ -25,32 +25,28 @@ export async function POST(req: Request) {
       );
     }
 
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth().verifyIdToken(idToken, true);
-    } catch (verifyError: any) {
+    // Exchange the ID token for a session cookie.
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    const sessionCookie = await adminAuth().createSessionCookie(idToken, { expiresIn });
+
+    // On successful verification, set session cookies
+    cookieStore.set("__session", sessionCookie, {
+      httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: expiresIn / 1000,
+    });
+    cookieStore.set("tcr_auth", "1", {
+      httpOnly: false, secure: true, sameSite: "lax", path: "/", maxAge: expiresIn / 1000,
+    });
+    
+    const decodedToken = await adminAuth().verifyIdToken(idToken, true);
+    return NextResponse.json({ ok: true, uid: decodedToken.uid });
+
+  } catch (verifyError: any) {
       console.error("Session POST token verification failed:", verifyError);
       const errMessage = verifyError?.message || String(verifyError);
       return NextResponse.json(
         { error: "invalid idToken", cause: errMessage },
         { status: 401 }
       );
-    }
-
-    // On successful verification, set session cookies
-    cookieStore.set("__session", idToken, {
-      httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24,
-    });
-    cookieStore.set("tcr_auth", "1", {
-      httpOnly: false, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24,
-    });
-    return NextResponse.json({ ok: true, uid: decodedToken.uid });
-  } catch (err) {
-    console.error("Session POST unexpected error:", err);
-    return NextResponse.json(
-      { error: "server_error", message: "Internal server error" },
-      { status: 500 }
-    );
   }
 }
 
