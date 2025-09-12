@@ -10,8 +10,11 @@ export default function SignupPage() {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
         <div className="absolute top-4 left-4">
-          <Link href="/">
+          <Link href="/" className="flex items-center gap-3">
             <Logo className="h-8 w-auto text-foreground" />
+             <span className="font-headline text-xl font-bold tracking-tight">
+              thecueRoom
+            </span>
           </Link>
         </div>
         <Card className="w-full max-w-lg text-left">

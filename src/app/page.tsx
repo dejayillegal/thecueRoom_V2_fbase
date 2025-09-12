@@ -1,4 +1,4 @@
-import Logo from '@/components/logo';
+import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -7,17 +7,7 @@ export default function Home() {
     <div className="relative min-h-screen w-full bg-background">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="container mx-auto flex items-center justify-between p-4">
-          <Logo className="h-8 w-auto text-foreground" />
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
-          </div>
-        </header>
+        <Header />
         <main className="flex flex-1 items-center justify-center p-4">
           <div className="flex flex-col items-center space-y-8 text-center">
             <div className="space-y-4">
