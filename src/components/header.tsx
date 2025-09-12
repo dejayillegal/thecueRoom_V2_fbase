@@ -15,9 +15,9 @@ import SignupForm from './signup-form';
 export default function Header() {
   return (
     <header className="container mx-auto flex items-center justify-between p-4">
-      <Link href="/" className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-2">
         <Logo className="h-8 w-auto text-foreground" />
-        <span className="font-headline text-xl font-bold tracking-tight">
+        <span className="text-lg font-normal tracking-tight">
           thecueRoom
         </span>
       </Link>
