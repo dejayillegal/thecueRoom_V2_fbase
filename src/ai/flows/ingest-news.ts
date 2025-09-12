@@ -24,6 +24,7 @@ const ArticleSchema = z.object({
   category: z.string().describe('The category of the news article.'),
   publishedAt: z.string().datetime().optional().describe('The publication date of the article.'),
 });
+export type Article = z.infer<typeof ArticleSchema>;
 
 const IngestNewsOutputSchema = z.object({
   articles: z.array(ArticleSchema).describe('An array of ingested news articles, de-duplicated and categorized.'),
@@ -119,8 +120,11 @@ const ingestNewsFlow = ai.defineFlow(
     // The actual implementation would process llmResponse.output.
     return {
         articles: [
-            { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "#", category: "Global Underground" },
-            { title: "Detroit mainstay drops surprise vinyl-only EP", source: "XLR8R", url: "#", category: "Global Underground" },
+            { title: "Berghain announces extended Sunday sessions", source: "Resident Advisor", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Detroit mainstay drops surprise vinyl-only EP", source: "XLR8R", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
+            { title: "Ableton releases new spectral processing device", source: "Ableton Blog", url: "#", category: "Gear / Production", publishedAt: new Date().toISOString() },
+            { title: "Wild City spotlights new talent from Mumbai", source: "Wild City", url: "#", category: "India / Asia Underground", publishedAt: new Date().toISOString() },
+            { title: "Mixmag premieres a new track from a rising star", source: "Mixmag", url: "#", category: "Global Underground", publishedAt: new Date().toISOString() },
         ]
     };
   }
