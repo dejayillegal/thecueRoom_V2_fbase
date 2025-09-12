@@ -84,8 +84,8 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
-                  <Link href="/dashboard/news">
+                <SidebarMenuButton asChild isActive={pathname === '/news'} tooltip="News">
+                  <Link href="/news">
                     <Newspaper />
                     <span className="group-data-[collapsible=icon]:hidden">News</span>
                   </Link>
@@ -93,7 +93,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
-                    <Link href="/gigs">
+                    <Link href="/dashboard/gigs">
                       <CalendarDays />
                       <span className="group-data-[collapsible=icon]:hidden">Gigs</span>
                     </Link>
