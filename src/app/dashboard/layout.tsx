@@ -48,8 +48,12 @@ export default function DashboardLayout({
           </SidebarHeader>
           <SidebarMenu>
              <div className="relative w-full p-2">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search..." className="pl-9 group-data-[collapsible=icon]:hidden" />
+              <SidebarMenuButton asChild variant="ghost" className="w-full justify-start group-data-[collapsible=icon]:justify-center">
+                  <>
+                    <Search className="h-4 w-4" />
+                    <span className="group-data-[collapsible=icon]:hidden">Search...</span>
+                  </>
+              </SidebarMenuButton>
             </div>
             <SidebarMenuItem>
               <SidebarMenuButton
