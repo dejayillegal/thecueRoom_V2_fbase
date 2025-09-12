@@ -105,7 +105,7 @@ export default function DashboardPage() {
                   <CardDescription>Curated underground updates</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button><Newspaper className="mr-2 h-4 w-4"/>Read</Button>
+                    <Button asChild><Link href="/dashboard/news"><Newspaper className="mr-2 h-4 w-4"/>Read</Link></Button>
                     <Button variant="outline">Sources</Button>
                 </CardContent>
               </Card>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">News spotlights</h2>
-            <Button variant="outline" size="sm">Auto-scroll</Button>
+            <Button variant="outline" size="sm" asChild><Link href="/dashboard/news">View all</Link></Button>
         </div>
         <div className="space-y-4">
           {newsItems.map((item, index) => (

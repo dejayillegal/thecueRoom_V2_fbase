@@ -21,12 +21,15 @@ import Logo from '@/components/logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -43,7 +46,7 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <SidebarMenuButton
                 href="/dashboard"
-                isActive={true}
+                isActive={pathname === '/dashboard'}
                 tooltip="Dashboard"
               >
                 <LayoutDashboard />
@@ -63,7 +66,7 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="News">
+              <SidebarMenuButton href="/dashboard/news" isActive={pathname === '/dashboard/news'} tooltip="News">
                 <Newspaper />
                 News
               </SidebarMenuButton>
