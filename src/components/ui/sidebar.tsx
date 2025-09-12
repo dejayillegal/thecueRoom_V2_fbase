@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -175,7 +176,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state } = useSidebar()
 
     if (collapsible === "none") {
       return (
@@ -194,21 +195,7 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar/70 p-0 text-sidebar-foreground backdrop-blur-lg [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
-            side={side}
-          >
-            <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetContent>
-        </Sheet>
+        <div ref={ref} {...props}>{children}</div>
       )
     }
 
@@ -270,13 +257,17 @@ Sidebar.displayName = "Sidebar"
 
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar, isMobile } = useSidebar()
+  React.ComponentProps<typeof Button> & {
+    side?: "left" | "right",
+    children: React.ReactNode,
+  }
+>(({ className, onClick, children, side="left", ...props }, ref) => {
+  const { toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar()
 
   if (isMobile) {
      return (
-       <SheetTrigger asChild>
+       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetTrigger asChild>
           <Button
             ref={ref}
             data-sidebar="trigger"
@@ -293,6 +284,20 @@ const SidebarTrigger = React.forwardRef<
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
        </SheetTrigger>
+       <SheetContent
+            data-sidebar="sidebar"
+            data-mobile="true"
+            className="w-[--sidebar-width] bg-sidebar/70 p-0 text-sidebar-foreground backdrop-blur-lg [&>button]:hidden"
+            style={
+              {
+                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              } as React.CSSProperties
+            }
+            side={side}
+          >
+            <div className="flex h-full w-full flex-col">{children}</div>
+          </SheetContent>
+       </Sheet>
      )
   }
 
