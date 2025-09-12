@@ -35,7 +35,7 @@ const withTimeout = async <T>(p: Promise<T>, ms: number) => {
 async function fetchText(url: string, headers: Record<string, string> = {}) {
   const res = await request(url, { headers, maxRedirections: 2 });
   const text = await res.body.text();
-  return { status: res.statusCode, headers: Object.fromEntries(res.headers as any), text };
+  return { status: res.statusCode, headers: res.headers as Record<string, string | number | string[]>, text };
 }
 
 // Normalize common RSS/Atom shapes into Article[]
@@ -117,7 +117,7 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
       return cached.items;
     }
 
-    if (headers["content-type"]?.includes("text/html") || source.url.includes("ra.co/news")) {
+    if (String(headers["content-type"])?.includes("text/html") || source.url.includes("ra.co/news")) {
       const items = await scrapeIndexHTML(source.url, source);
       rssCache.set(source.url, { meta: { fetchedAt: Date.now() }, items });
       return items;
@@ -135,7 +135,8 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
       items: validated,
     });
     return validated;
-  } catch {
+  } catch(e) {
+    console.error(`Failed to fetch ${source.url}`, e);
     // network or parse error → graceful fallback
     return cached?.items ?? [];
   }
@@ -143,18 +144,16 @@ async function fetchOneSource(source: FeedSource): Promise<Article[]> {
 
 // Retry with exponential backoff; also per-domain jitter to avoid thundering herds
 export async function fetchAllSources(sources: FeedSource[], maxPerSource = 10): Promise<Article[]> {
+  const promises = sources.map(source => fetchOneSource(source));
+  const results = await Promise.allSettled(promises);
+
   const out: Article[] = [];
-  for (const s of sources) {
-    let tries = 0, got: Article[] = [];
-    while (tries < 3 && got.length === 0) {
-      got = await fetchOneSource(s);
-      if (got.length === 0) {
-        tries++;
-        await delay(200 * 2 ** tries + Math.random() * 200);
-      }
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      out.push(...result.value.slice(0, maxPerSource));
     }
-    out.push(...got.slice(0, maxPerSource));
-  }
+  });
+
   return dedupeAndSort(out);
 }
 
@@ -163,9 +162,8 @@ function dedupeAndSort(items: Article[]): Article[] {
   const map = new Map<string, Article>();
   for (const a of items) {
     const k = key(a);
-    const current = map.get(k);
-    if (!current || new Date(a.publishedAt) > new Date(current.publishedAt)) {
-      map.set(k, a);
+    if (!map.has(k)) { // a simple "first one wins" for items with same key
+        map.set(k, a);
     }
   }
   return Array.from(map.values()).sort((a,b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
