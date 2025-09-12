@@ -1,6 +1,7 @@
 
 import { adminDb } from "@/lib/firebase-admin";
 import { z } from "zod";
+import process from "node:process";
 
 export const NewsSettingsSchema = z.object({
   GLOBAL_TIMEOUT_MS: z.number().int().positive().default(9000),

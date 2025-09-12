@@ -1,6 +1,7 @@
 
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import process from "node:process";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {

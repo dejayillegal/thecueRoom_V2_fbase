@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {adminAuth} from '@/lib/firebase-admin';
+import process from "node:process";
 
 export async function POST(req: Request) {
   try {

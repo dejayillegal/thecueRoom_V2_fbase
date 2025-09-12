@@ -2,6 +2,7 @@ import { XMLParser } from "fast-xml-parser";
 import removeMd from "remove-markdown";
 import type { Feed } from "./config";
 import type { NewsItem, NewsSettings } from "./types";
+import process from "node:process";
 
 const parser = new XMLParser({ ignoreAttributes:false, attributeNamePrefix:"", processEntities:true, removeNSPrefix:true });
 
