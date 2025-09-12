@@ -22,6 +22,5 @@ export async function setNewsSettings(raw: unknown) {
     const input = SettingsSchema.parse(raw);
     await db.collection("config").doc("news").set(input, { merge: true });
     return input;
-  }, { tags: ["news:settings"], paths: ["/news", "/admin"] });
+  }, { tags: ["news:settings"] });
 }
-

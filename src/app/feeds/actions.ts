@@ -3,8 +3,8 @@
 
 import { getDb } from '@/lib/firebase-admin';
 import type { RssFeed } from '@/lib/rss-feeds';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { safe, ok, fail } from '@/lib/actions';
+import { revalidateTag } from 'next/cache';
+import { safe } from '@/lib/actions';
 import { requireAdmin } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -39,7 +39,7 @@ export async function addFeed(raw: unknown) {
     const input = AddFeedSchema.parse(raw);
     const docRef = await db.collection("news_feeds").add({ ...input, enabled: true, createdAt: new Date() });
     return { id: docRef.id, ...input };
-  }, { tags: ["news:feeds"], paths: ["/admin"] });
+  }, { tags: ["news:feeds"] });
 }
 
 
@@ -56,7 +56,7 @@ export async function updateFeed(id: string, raw: unknown) {
     const input = UpdateFeedSchema.parse(raw);
     await db.collection("news_feeds").doc(id).set(input, { merge: true });
     return { id, ...input };
-  }, { tags: ["news:feeds"], paths: ["/admin"] });
+  }, { tags: ["news:feeds"] });
 }
 
 
@@ -68,7 +68,7 @@ export async function deleteFeed(id: string) {
     if (!id) throw new Error("Feed ID is required.");
     await db.collection("news_feeds").doc(id).delete();
     return { id };
-  }, { tags: ["news:feeds"], paths: ["/admin"] });
+  }, { tags: ["news:feeds"] });
 }
 
 
