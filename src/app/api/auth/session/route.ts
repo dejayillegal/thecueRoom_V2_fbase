@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import "@/lib/firebase-admin"; // singleton admin init
+import { ADMIN_PROJECT_ID } from "@/lib/firebase-admin";
 
 const SESSION_COOKIE = "__session";
 const FLAG_COOKIE = "tcr_auth";
@@ -14,20 +15,20 @@ function isSecureReq() {
 }
 
 export async function POST(req: Request) {
+  let idToken: string | undefined;
   try {
-    const { idToken } = await req.json();
+    const body = await req.json();
+    idToken = body?.idToken;
     if (!idToken) {
       return NextResponse.json({ error: "missing idToken" }, { status: 400 });
     }
 
-    // Verify the token to ensure it’s valid for this project.
     const decoded = await getAuth().verifyIdToken(idToken, true);
-    const maxAge = Math.min(60 * 60 * 24 * 5, (decoded.exp! - decoded.iat!)); // <= 5 days
 
+    const maxAge = Math.min(60 * 60 * 24 * 5, decoded.exp! - decoded.iat!);
     const c = cookies();
     const secure = isSecureReq();
 
-    // HttpOnly token cookie for server verification
     c.set(SESSION_COOKIE, idToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -35,18 +36,31 @@ export async function POST(req: Request) {
       path: "/",
       maxAge,
     });
-
-    // Small non-HttpOnly flag so middleware can gate routes fast
-    c.set(FLAG_COOKIE, "1", {
-      sameSite: "lax",
-      secure,
-      path: "/",
-      maxAge,
-    });
+    c.set(FLAG_COOKIE, "1", { sameSite: "lax", secure, path: "/", maxAge });
 
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    return NextResponse.json({ error: "invalid idToken" }, { status: 401 });
+  } catch (e: any) {
+    // Decode without verifying to show helpful hints
+    let aud: string | undefined;
+    let iss: string | undefined;
+    try {
+      const [, payload] = (idToken || "").split(".");
+      const json =
+        payload && JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+      aud = json?.aud;
+      iss = json?.iss;
+    } catch {}
+
+    return NextResponse.json(
+      {
+        error: "invalid idToken",
+        cause: e?.message,
+        aud,
+        iss,
+        expectedProjectId: ADMIN_PROJECT_ID,
+      },
+      { status: 401 }
+    );
   }
 }
 

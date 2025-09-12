@@ -6,16 +6,29 @@ import type { Firestore } from 'firebase-admin/firestore';
 declare global {
   // eslint-disable-next-line no-var
   var __tcrAdminApp: admin.app.App | undefined;
+  var __tcrDbBroken: boolean | undefined;
+  var __tcrDb: unknown | null | undefined;
+  var __tcrDbInitError: Error | null | undefined;
 }
+
+const PROJECT_ID =
+  process.env.FIREBASE_PROJECT_ID ||
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID; // fall back to client env if needed
 
 function init(): admin.app.App {
   if (global.__tcrAdminApp) return global.__tcrAdminApp;
 
+  if (!PROJECT_ID) {
+    console.warn(
+      "[firebase-admin] Missing FIREBASE_PROJECT_ID/GOOGLE_CLOUD_PROJECT/NEXT_PUBLIC_FIREBASE_PROJECT_ID."
+    );
+  }
+
   if (!admin.apps.length) {
     admin.initializeApp({
-      // In Firebase Hosting / Cloud env the default credentials work.
-      // For local dev with a service account, set GOOGLE_APPLICATION_CREDENTIALS.
       credential: admin.credential.applicationDefault(),
+      projectId: PROJECT_ID, // <-- CRITICAL: ensures verifyIdToken uses the right project
     });
   }
   global.__tcrAdminApp = admin.app();
@@ -26,15 +39,36 @@ export const adminApp = init();
 export function adminAuth() {
   return admin.auth(adminApp);
 }
-export async function getDb(): Promise<Firestore | null> {
+
+let _db: Firestore | null = null;
+function tryInitDb() {
+  if (_db) return _db;
+  if (globalThis.__tcrDbBroken) return null;
   try {
-    return admin.firestore(adminApp);
-  } catch {
-    return null as any;
+    _db = admin.firestore(adminApp);
+    return _db;
+  } catch (e: any) {
+    globalThis.__tcrDbInitError = e;
+    globalThis.__tcrDbBroken = true;
+    return null;
   }
 }
 
-// Keep db-related helpers for news feed feature
-export async function getDbInitError(): Promise<Error | null> { return null; }
-export async function isDbAvailable(): Promise<boolean> { return !!(await getDb()); }
-export async function markDbBroken(): Promise<void> { /* no-op, handled by getDb */ }
+export async function getDb(): Promise<Firestore | null> {
+  return tryInitDb();
+}
+
+export async function getDbInitError(): Promise<Error | null> {
+  return globalThis.__tcrDbInitError ?? null;
+}
+
+export async function isDbAvailable(): Promise<boolean> {
+  return !!tryInitDb();
+}
+
+export async function markDbBroken(): Promise<void> {
+  globalThis.__tcrDbBroken = true;
+  globalThis.__tcrDb = null;
+}
+
+export const ADMIN_PROJECT_ID = PROJECT_ID; // optional: for debug
