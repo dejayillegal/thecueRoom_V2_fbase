@@ -69,7 +69,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <Link href="/dashboard/cover-art" className="group">
+                <Link href="/cover-art" className="group">
                     <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
                         <CardHeader>
                             <ImageIcon className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
@@ -80,7 +80,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
                 </Link>
-                 <Link href="/dashboard/memes" className="group">
+                 <Link href="/memes" className="group">
                     <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
                         <CardHeader>
                             <PenSquare className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
@@ -91,7 +91,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
                 </Link>
-                <Link href="/dashboard/news" className="group">
+                <Link href="/news" className="group">
                     <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
                         <CardHeader>
                             <Newspaper className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
@@ -102,7 +102,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
                 </Link>
-                 <Link href="/dashboard/gigs" className="group">
+                 <Link href="/gigs" className="group">
                     <Card className="h-full transition-all duration-300 hover:bg-muted/50 hover:border-primary">
                         <CardHeader>
                              <CalendarDays className="h-8 w-8 text-muted-foreground transition-all duration-300 group-hover:text-primary" />
@@ -144,7 +144,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">News spotlights</h2>
-            <Button variant="outline" size="sm" asChild><Link href="/dashboard/news">View all</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link href="/news">View all</Link></Button>
         </div>
         <div className="space-y-4">
           {newsItems.map((item, index) => (

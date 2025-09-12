@@ -68,40 +68,40 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/cover-art'} tooltip="Cover Art">
-                  <Link href="/dashboard/cover-art">
+                <SidebarMenuButton asChild isActive={pathname === '/cover-art'} tooltip="Cover Art">
+                  <Link href="/cover-art">
                     <Image />
                     <span className="group-data-[collapsible=icon]:hidden">Cover Art</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
                 <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/memes'} tooltip="Memes">
-                  <Link href="/dashboard/memes">
+                <SidebarMenuButton asChild isActive={pathname === '/memes'} tooltip="Memes">
+                  <Link href="/memes">
                     <Smile />
                     <span className="group-data-[collapsible=icon]:hidden">Memes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/news'} tooltip="News">
-                  <Link href="/dashboard/news">
+                <SidebarMenuButton asChild isActive={pathname === '/news'} tooltip="News">
+                  <Link href="/news">
                     <Newspaper />
                     <span className="group-data-[collapsible=icon]:hidden">News</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/gigs'} tooltip="Gigs">
-                    <Link href="/dashboard/gigs">
+                  <SidebarMenuButton asChild isActive={pathname === '/gigs'} tooltip="Gigs">
+                    <Link href="/gigs">
                       <CalendarDays />
                       <span className="group-data-[collapsible=icon]:hidden">Gigs</span>
                     </Link>
                   </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/genres'} tooltip="Genres">
-                    <Link href="/dashboard/genres">
+                  <SidebarMenuButton asChild isActive={pathname === '/genres'} tooltip="Genres">
+                    <Link href="/genres">
                       <Music />
                       <span className="group-data-[collapsible=icon]:hidden">Genres</span>
                     </Link>
@@ -111,8 +111,8 @@ export default function DashboardLayout({
             <SidebarMenu className="mt-auto">
               {isAdmin && (
                   <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin'} tooltip="Admin">
-                    <Link href="/dashboard/admin">
+                  <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Admin">
+                    <Link href="/admin">
                       <Shield />
                       <span className="group-data-[collapsible=icon]:hidden">Admin</span>
                     </Link>
@@ -120,8 +120,8 @@ export default function DashboardLayout({
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/settings'} tooltip="Settings">
-                  <Link href="/dashboard/settings">
+                <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+                  <Link href="/settings">
                     <Settings />
                     <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                   </Link>
