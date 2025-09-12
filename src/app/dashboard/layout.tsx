@@ -134,6 +134,7 @@ export default function DashboardLayout({
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/80 backdrop-blur-lg px-4 lg:px-6">
             <div className="flex items-center gap-4">
+              <SidebarTrigger className="md:hidden" />
                <Button variant="outline" size="sm">
                 <Sparkles className="h-4 w-4 mr-2" />
                 AI Tools
