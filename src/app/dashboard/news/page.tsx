@@ -46,4 +46,7 @@ function NewsFeedSkeleton() {
             ))}
             </div>
         </CardContent>
-      </
+      </Card>
+    </div>
+  );
+}

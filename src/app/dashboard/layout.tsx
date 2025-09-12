@@ -14,7 +14,6 @@ import {
   LogOut,
   Sparkles,
   Shield,
-  UserPlus,
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarRail } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
@@ -24,6 +23,7 @@ import { usePathname } from 'next/navigation';
 
 // In a real app, you would get this from your auth provider
 const isAdmin = true;
+const isLoggedIn = true;
 
 export default function DashboardLayout({
   children,
@@ -38,7 +38,7 @@ export default function DashboardLayout({
           <SidebarRail />
           <SidebarContent>
             <SidebarHeader>
-                <Link href="/dashboard" className="flex items-center gap-2 group">
+                <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 group">
                 <Logo className="h-9 w-auto text-foreground transition-transform duration-300 ease-in-out group-hover:scale-110" />
                 <span className="font-normal tracking-tight group-data-[collapsible=icon]:hidden transition-transform duration-300 ease-in-out group-hover:-translate-y-0.5">
                   thecueRoom
@@ -159,4 +159,11 @@ export default function DashboardLayout({
             <footer className="p-4 md:p-6 lg:p-8 text-xs text-muted-foreground border-t">
               <div className="container mx-auto text-center space-y-2">
                 <p>Content aggregated from trusted electronic music sources  • Data from Resident Advisor, Mixmag, Beatport, and more • Updated hourly • Links direct to original sources</p>
-                <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</
+                <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</p>
+              </div>
+            </footer>
+          </div>
+        </SidebarInset>
+    </SidebarProvider>
+  );
+}
