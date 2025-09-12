@@ -121,7 +121,7 @@ const generateCoverArtFlow = ai.defineFlow(
       };
 
     } catch (error: any) {
-      console.error("AI generation failed:", error.message);
+      console.error("AI generation failed:", error);
       
       // Check if the error is due to billing
       const isBillingError = error.message?.includes("billing");
@@ -131,7 +131,7 @@ const generateCoverArtFlow = ai.defineFlow(
           // Use the generate-thumbnail flow as a free fallback.
           const fallbackResult = await generateThumbnail({ title: input.prompt });
           return {
-              ...fallbackResult,
+              imageUrl: fallbackResult.imageUrl,
               revisedPrompt: "Using free tier. Enable billing in Google Cloud for advanced AI generation."
           };
       }
