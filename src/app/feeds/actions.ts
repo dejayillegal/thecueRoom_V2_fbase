@@ -1,16 +1,22 @@
 
 'use server';
 
-import { db } from '@/lib/firebase-admin';
+import { getDb } from '@/lib/firebase-admin';
 import type { RssFeed } from '@/lib/rss-feeds';
 import { revalidatePath } from 'next/cache';
-import { getEnabledFeeds } from '@/feeds/config';
 
 export async function getFeeds(): Promise<RssFeed[]> {
+  const db = getDb();
+  if (!db) {
+    console.warn("Firestore is not available, returning empty feeds list.");
+    return [];
+  }
   try {
-    const feeds = await getEnabledFeeds();
-    // Sort feeds by name for consistent display
-    return feeds.sort((a, b) => a.name.localeCompare(b.name));
+    const snapshot = await db.collection("news_feeds").orderBy("name").get();
+    if (snapshot.empty) {
+      return [];
+    }
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RssFeed));
   } catch (error) {
     console.error("Failed to get feeds from Firestore", error);
     return [];
@@ -18,6 +24,10 @@ export async function getFeeds(): Promise<RssFeed[]> {
 }
 
 export async function addFeed(newFeed: { name: string; url: string; category: string; region: string; }): Promise<{ success: boolean; error?: string }> {
+    const db = getDb();
+    if (!db) {
+        return { success: false, error: "Database not available." };
+    }
     try {
         await db.collection("news_feeds").add({ ...newFeed, enabled: true, createdAt: new Date() });
         revalidatePath('/admin');
@@ -31,6 +41,10 @@ export async function addFeed(newFeed: { name: string; url: string; category: st
 }
 
 export async function updateFeed(updatedFeed: RssFeed): Promise<{ success: boolean; error?: string }> {
+  const db = getDb();
+  if (!db) {
+      return { success: false, error: "Database not available." };
+  }
   if (!updatedFeed.id) {
     return { success: false, error: "Feed ID is missing." };
   }
@@ -48,6 +62,10 @@ export async function updateFeed(updatedFeed: RssFeed): Promise<{ success: boole
 }
 
 export async function deleteFeed(feedId: string): Promise<{ success: boolean; error?: string }> {
+   const db = getDb();
+    if (!db) {
+        return { success: false, error: "Database not available." };
+    }
    if (!feedId) {
     return { success: false, error: "Feed ID is missing." };
   }
