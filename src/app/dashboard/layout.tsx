@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   Shield,
+  User,
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarRail } from '@/components/ui/sidebar';
 import Logo from '@/components/logo';
@@ -36,7 +36,6 @@ export default function DashboardLayout({
     <SidebarProvider>
       <div className="relative min-h-screen w-full bg-background">
         <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.2),transparent)]"></div>
-        <div className="relative z-10 flex min-h-screen flex-col">
           <Sidebar>
             <SidebarRail />
             <SidebarContent className="bg-background/80 backdrop-blur-lg">
@@ -134,38 +133,39 @@ export default function DashboardLayout({
             </SidebarContent>
           </Sidebar>
           <SidebarInset>
-            <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-transparent px-4 lg:px-6">
-                <div className="flex items-center gap-4">
-                  <SidebarTrigger className="md:hidden" />
-                   <Button variant="outline" size="sm">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    AI Tools
-                  </Button>
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-transparent px-4 lg:px-6">
+                  <div className="flex items-center gap-4">
+                    <SidebarTrigger className="md:hidden" />
+                     <Button variant="outline" size="sm">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      AI Tools
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                        <AvatarFallback>DJ</AvatarFallback>
+                    </Avatar>
+                     <Button variant="default" size="sm" asChild>
+                      <Link href="/">
+                        <LogOut />
+                        <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+                      </Link>
+                    </Button>
+                  </div>
+              </header>
+              <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                  {children}
+              </main>
+              <footer className="p-4 md:p-6 lg:p-8 text-xs text-muted-foreground border-t">
+                <div className="container mx-auto text-center space-y-2">
+                  <p>Content aggregated from trusted electronic music sources  • Data from Resident Advisor, Mixmag, Beatport, and more • Updated hourly • Links direct to original sources</p>
+                  <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                      <AvatarFallback>DJ</AvatarFallback>
-                  </Avatar>
-                   <Button variant="default" size="sm" asChild>
-                    <Link href="/">
-                      <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
-                      <LogOut className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-            </header>
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                {children}
-            </main>
-            <footer className="p-4 md:p-6 lg:p-8 text-xs text-muted-foreground border-t">
-              <div className="container mx-auto text-center space-y-2">
-                <p>Content aggregated from trusted electronic music sources  • Data from Resident Advisor, Mixmag, Beatport, and more • Updated hourly • Links direct to original sources</p>
-                <p>TheCueRoom aggregates content under fair use. All rights remain with original publishers.</p>
-              </div>
-            </footer>
+              </footer>
+            </div>
           </SidebarInset>
-        </div>
       </div>
     </SidebarProvider>
   );
