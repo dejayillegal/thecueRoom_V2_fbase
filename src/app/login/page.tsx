@@ -65,6 +65,6 @@ function SignIn({ next }: { next: string }) {
 // This is a server component that extracts the search param on the server
 // and passes it as a simple prop to the client component.
 export default function LoginPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const next = typeof searchParams['next'] === 'string' ? searchParams['next'] : '/dashboard';
+  const next = searchParams.next && typeof searchParams.next === 'string' ? searchParams.next : '/dashboard';
   return <SignIn next={next} />;
 }
