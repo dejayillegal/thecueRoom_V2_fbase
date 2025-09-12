@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -90,6 +91,39 @@ export default function CoverArtClient() {
     if (ratio === '9:16') return 9 / 16;
     return 1;
   }
+
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+    try {
+      // Use fetch to get the image data
+      const response = await fetch(generatedImage);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const blob = await response.blob();
+      
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'thecueroom-cover-art.png';
+      
+      // Append to the document, click, and then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: "Could not download the image. Please try again.",
+      });
+    }
+  };
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -260,10 +294,8 @@ export default function CoverArtClient() {
         </CardContent>
          {generatedImage && (
           <CardFooter className="flex-col gap-4 items-stretch">
-            <Button asChild className="w-full">
-              <a href={generatedImage} download="thecueroom-cover-art.png">
-                <Download /> Download Image
-              </a>
+             <Button onClick={handleDownload} className="w-full">
+              <Download /> Download Image
             </Button>
             <p className="text-xs text-muted-foreground text-center">Note: Final image resolution may vary. Watermark is subtly placed.</p>
           </CardFooter>
