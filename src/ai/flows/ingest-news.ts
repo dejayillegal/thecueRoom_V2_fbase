@@ -99,7 +99,7 @@ const ingestNewsFlow = ai.defineFlow(
             { title: "Dekmantel launches a new podcast series focusing on ambient music", source: "Dekmantel", url: "https://dekmantel.com/podcast/new-series-ambient", category: "Mixes / Podcasts", publishedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
             { title: "Bandcamp Daily: The Best Electronic Music of the Month", source: "Bandcamp Daily", url: "https://daily.bandcamp.com/best-electronic-music-may-2024", category: "Labels / Platforms", publishedAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
             { title: "FACT Magazine reviews the latest Moog synthesizer", source: "FACT Magazine", url: "https://www.factmag.com/2024/05/10/moog-synthesizer-review/", category: "Gear / Production", publishedAt: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString() },
-            { title: "The Indian Music Diaries: In conversation with producer Lifafa", source: "The Indian Music Diaries", url: "https://theindianmusicdiaries.com/lifafa-interview/", category: "India / Asia Underground", publishedAt: new Date(Date.now() - 5 * 24 * 36G00 * 1000).toISOString() },
+            { title: "The Indian Music Diaries: In conversation with producer Lifafa", source: "The Indian Music Diaries", url: "https://theindianmusicdiaries.com/lifafa-interview/", category: "India / Asia Underground", publishedAt: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString() },
             { title: "XLR8R Podcast 785: Ben UFO", source: "XLR8R", url: "https://xlr8r.com/podcasts/xlr8r-podcast-785-ben-ufo/", category: "Mixes / Podcasts", publishedAt: new Date(Date.now() - 6 * 24 * 3600 * 1000).toISOString() },
         ]
     };
