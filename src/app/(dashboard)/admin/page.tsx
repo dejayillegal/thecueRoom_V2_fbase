@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RssFeed, rssFeeds as initialRssFeeds } from "@/lib/rss-feeds";
+import type { RssFeed } from "@/lib/rss-feeds";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeleteFeedDialog from "@/components/delete-feed-dialog";
 import EditFeedDialog from "@/components/edit-feed-dialog";
-import { deleteFeed, updateFeed } from "@/app/feeds/actions";
+import { getFeeds, deleteFeed, updateFeed } from "@/app/feeds/actions";
 
 export default function AdminPage() {
   const [imageModel, setImageModel] = useState<string | null>(null);
@@ -31,26 +31,29 @@ export default function AdminPage() {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchAllData() {
-      setIsLoading(true);
-      try {
-        const config = await getCoverArtConfig();
-        setImageModel(config.model);
-        // In a real app, you would fetch feeds from the server action/API
-        setRssFeeds(initialRssFeeds);
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Could not load initial configuration.",
-          icon: <XCircle />,
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      const [config, feeds] = await Promise.all([
+        getCoverArtConfig(),
+        getFeeds(),
+      ]);
+      setImageModel(config.model);
+      setRssFeeds(feeds);
+    } catch (error) {
+      console.error("Failed to fetch data", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not load initial configuration and feeds.",
+        icon: <XCircle />,
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchAllData();
   }, [toast]);
 
@@ -83,20 +86,20 @@ export default function AdminPage() {
       try {
         const result = await deleteFeed(feedToDelete.url);
         if (result.success) {
-            setRssFeeds(rssFeeds.filter(feed => feed.url !== feedToDelete.url));
             toast({
               title: "Feed Deleted",
               description: `"${feedToDelete.name}" has been removed.`,
               icon: <CheckCircle />,
             });
+            await fetchAllData(); // Re-fetch to get the latest state from server
         } else {
-            throw new Error("Server action failed.");
+            throw new Error(result.error || "Server action failed.");
         }
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not delete feed. The change was not persisted.",
+          description: `Could not delete feed. ${error instanceof Error ? error.message : ''}`,
           icon: <XCircle />,
         });
       }
@@ -115,20 +118,20 @@ export default function AdminPage() {
        try {
         const result = await updateFeed(updatedFeed);
         if (result.success) {
-            setRssFeeds(rssFeeds.map(feed => feed.url === updatedFeed.url ? updatedFeed : feed));
             toast({
               title: "Feed Updated",
               description: `"${updatedFeed.name}" has been updated.`,
               icon: <CheckCircle />,
             });
+            await fetchAllData(); // Re-fetch to get the latest state from server
         } else {
-            throw new Error("Server action failed.");
+            throw new Error(result.error || "Server action failed.");
         }
       } catch (error) {
          toast({
           variant: "destructive",
           title: "Error",
-          description: "Could not update feed. The change was not persisted.",
+          description: `Could not update feed. ${error instanceof Error ? error.message : ''}`,
           icon: <XCircle />,
         });
       }
@@ -139,64 +142,64 @@ export default function AdminPage() {
 
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin Console</CardTitle>
-            <CardDescription>
-              Manage application settings and content sources.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Cover Art Generation</CardTitle>
-            <CardDescription>
-              Select the AI model for cover art generation. Premium requires a billed Google Cloud account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-8 w-1/4" />
-                <div className="flex items-center space-x-2">
-                  <Skeleton className="h-4 w-4 rounded-full" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Skeleton className="h-4 w-4 rounded-full" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-                <Skeleton className="h-10 w-24 mt-4" />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <RadioGroup
-                  value={imageModel ?? 'free'}
-                  onValueChange={setImageModel}
-                >
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Console</CardTitle>
+              <CardDescription>
+                Manage application settings and content sources.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Cover Art Generation</CardTitle>
+              <CardDescription>
+                Select the AI model for cover art generation. Premium requires a billed Google Cloud account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-1/4" />
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="premium" id="premium" />
-                    <Label htmlFor="premium">Premium (Imagen) - Requires Billed Account</Label>
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="free" id="free" />
-                    <Label htmlFor="free">Free (Seeded Placeholder)</Label>
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
-                </RadioGroup>
-                <Button onClick={handleSaveConfig}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Configuration
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  <Skeleton className="h-10 w-24 mt-4" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <RadioGroup
+                    value={imageModel ?? 'free'}
+                    onValueChange={setImageModel}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="premium" id="premium" />
+                      <Label htmlFor="premium">Premium (Imagen) - Requires Billed Account</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="free" id="free" />
+                      <Label htmlFor="free">Free (Seeded Placeholder)</Label>
+                    </div>
+                  </RadioGroup>
+                  <Button onClick={handleSaveConfig}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Configuration
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>RSS Feed Management</CardTitle>
