@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
@@ -13,8 +14,9 @@ export function middleware(req: NextRequest) {
     
   if (!hasSession) {
     const url = req.nextUrl.clone();
+    const nextPath = req.nextUrl.pathname + req.nextUrl.search;
     url.pathname = "/login";
-    url.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
+    url.searchParams.set("next", nextPath);
     return NextResponse.redirect(url);
   }
   
