@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
  
@@ -16,7 +17,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
  
-  if (pathname === '/' && sessionCookie) {
+  if ((pathname === '/' || pathname === '/login' || pathname === '/signup') && sessionCookie) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
@@ -33,8 +34,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - login, signup, reset-password (auth pages)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|reset-password).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }
