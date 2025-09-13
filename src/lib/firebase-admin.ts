@@ -1,4 +1,3 @@
-
 'use server';
 import "server-only";
 import * as admin from 'firebase-admin';
@@ -42,10 +41,9 @@ function init(): admin.app.App {
   return app;
 }
 
-export function adminApp(): admin.app.App { return init(); }
-export function adminAuth(): admin.auth.Auth { return admin.auth(init()); }
-export function adminDb(): admin.firestore.Firestore { return admin.firestore(init()); }
-
+export async function adminApp(): Promise<admin.app.App> { return init(); }
+export async function adminAuth(): Promise<admin.auth.Auth> { return admin.auth(await adminApp()); }
+export async function adminDb(): Promise<admin.firestore.Firestore> { return admin.firestore(await adminApp()); }
 
 // Optional tiny debug helper
-export function adminWhoami() { return { projectId: global.__tcrAdmin__?.projectId, saEmail: global.__tcrAdmin__?.saEmail }; }
+export async function adminWhoami() { return { projectId: global.__tcrAdmin__?.projectId, saEmail: global.__tcrAdmin__?.saEmail }; }
