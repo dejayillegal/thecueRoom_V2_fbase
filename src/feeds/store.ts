@@ -23,7 +23,7 @@ function sanitize(item: Partial<NewsItem>): NewsItem {
 export async function saveAggregate(items: NewsItem[]) {
   if (!items || items.length === 0) return;
   try {
-    const db = adminDb();
+    const db = await adminDb();
     await db.collection(AGG_COLLECTION).doc(AGG_DOC_ID).set(
       { items: items.map(sanitize), updatedAt: new Date() },
       { merge: true }
@@ -35,7 +35,7 @@ export async function saveAggregate(items: NewsItem[]) {
 
 export async function readAggregateFresh(freshMs: number): Promise<NewsItem[] | null> {
   try {
-    const db = adminDb();
+    const db = await adminDb();
     const snap = await db.collection(AGG_COLLECTION).doc(AGG_DOC_ID).get();
     if (!snap.exists) return null;
     const data = snap.data();

@@ -37,7 +37,8 @@ export async function POST(req: Request) {
 
     // Create a session cookie (24h)
     const expiresIn = 24 * 60 * 60 * 1000;
-    const cookie = await adminAuth().createSessionCookie(idToken, { expiresIn });
+    const auth = await adminAuth();
+    const cookie = await auth.createSessionCookie(idToken, { expiresIn });
 
     const c = cookies();
     c.set({

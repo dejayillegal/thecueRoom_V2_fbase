@@ -1,9 +1,10 @@
-// IMPORTANT: Do NOT put "use server" in this file.
-// This file is a plain Node helper module used by server routes.
 
-import { cert, initializeApp, getApps, App } from "firebase-admin/app";
-import { getAuth, Auth } from "firebase-admin/auth";
-import { getFirestore, Firestore } from "firebase-admin/firestore";
+"use server"; // If you remove this line, you can switch the exports back to sync.
+// Leaving it here means all exported functions below MUST be async.
+
+import { cert, initializeApp, getApps, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 let _app: App | null = null;
 let _db: Firestore | null = null;
@@ -12,7 +13,7 @@ let _dbSettingsApplied = false;
 function readServiceAccount(): Record<string, unknown> {
   const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
   if (!b64) throw new Error("FIREBASE_SERVICE_ACCOUNT_B64 is missing");
-  // strip whitespace/newlines just in case
+  // normalize (strip whitespace/newlines)
   const json = Buffer.from(b64.replace(/\s+/g, ""), "base64").toString("utf8").trim();
   try {
     return JSON.parse(json);
@@ -21,7 +22,7 @@ function readServiceAccount(): Record<string, unknown> {
   }
 }
 
-export function getAdminApp(): App {
+export async function getAdminApp(): Promise<App> {
   if (_app) return _app;
   const sa = readServiceAccount();
   const projectId = process.env.FIREBASE_PROJECT_ID || (sa as any).project_id;
@@ -30,13 +31,15 @@ export function getAdminApp(): App {
   return _app;
 }
 
-export function adminAuth(): Auth {
-  return getAuth(getAdminApp());
+export async function adminAuth(): Promise<Auth> {
+  const app = await getAdminApp();
+  return getAuth(app);
 }
 
-export function adminDb(): Firestore {
+export async function adminDb(): Promise<Firestore> {
   if (_db) return _db;
-  const db = getFirestore(getAdminApp());
+  const app = await getAdminApp();
+  const db = getFirestore(app);
   if (!_dbSettingsApplied) {
     db.settings({ ignoreUndefinedProperties: true }); // apply ONCE
     _dbSettingsApplied = true;

@@ -24,7 +24,7 @@ function settingsFromEnv(): NewsSettings {
 
 export async function getNewsSettings(): Promise<NewsSettings> {
   try {
-    const db = adminDb();
+    const db = await adminDb();
     const snap = await db.collection("config").doc("news").get();
     const raw = snap.exists ? snap.data() : {};
     return { ...settingsFromEnv(), ...(raw as Partial<NewsSettings>) };
@@ -54,7 +54,7 @@ const DEFAULT_FEEDS: Feed[] = [
 
 export async function getEnabledFeeds(): Promise<Feed[]> {
   try {
-    const db = adminDb();
+    const db = await adminDb();
     const snap = await db.collection("news_feeds").where("enabled", "==", true).get();
     if (snap.empty) {
         console.warn("[feeds/config] No enabled feeds found in Firestore, returning defaults.");

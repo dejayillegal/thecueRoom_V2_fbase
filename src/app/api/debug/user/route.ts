@@ -3,7 +3,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { adminApp } from "@/lib/firebase-admin";
+import { getAdminApp } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    const u = await getAuth(adminApp()).getUserByEmail(email);
+    const app = await getAdminApp();
+    const u = await getAuth(app).getUserByEmail(email);
     return NextResponse.json({ uid: u.uid, email: u.email, disabled: u.disabled, claims: u.customClaims ?? {} });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || String(e) }, { status: 404 });

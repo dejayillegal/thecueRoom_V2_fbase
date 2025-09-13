@@ -1,3 +1,4 @@
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,11 @@ export async function GET() {
     const who = await adminWhoami();
 
     // Touch auth/db just to ensure they’re live (will throw early if misconfigured)
-    await adminAuth().listUsers(1).catch(() => null);
-    await adminDb().listCollections().catch(() => null);
+    const auth = await adminAuth();
+    await auth.listUsers(1).catch(() => null);
+
+    const db = await adminDb();
+    await db.listCollections().catch(() => null);
 
     return NextResponse.json({
       ok: true,
