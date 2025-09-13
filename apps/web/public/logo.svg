@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" height="40" aria-label="thecueRoom logo with anchored blink" class="h-10 w-auto">
+  <style>
+    #blinkPath { transform-box: fill-box; transform-origin: 50% 50%; animation: blink 10s infinite; fill:#D1E231; }
+    @keyframes blink { 0%,92%,100%{transform:none;opacity:1;} 94%{transform:scaleY(.14);opacity:.85;} 96%{transform:none;opacity:1;} }
+    @media (prefers-reduced-motion: reduce) { #blinkPath { animation: none; } }
+  </style>
+  <g transform="translate(150,150) scale(0.8)">
+    <path id="blinkPath" d="M0 0 C6.96 6.58 11.2 13.65 11.56 23.38 ..." />
+  </g>
+</svg>
