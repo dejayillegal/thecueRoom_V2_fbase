@@ -1,87 +1,92 @@
 
-import {NextResponse} from 'next/server';
-import {cookies} from 'next/headers';
-import {adminAuth} from '@/lib/firebase-admin';
-import process from "node:process";
+import { cookies } from "next/headers";
+import { adminAuth } from "@/lib/firebase-admin";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const t0 = performance.now();
+  const reqClone = req.clone(); // Clone request to read body multiple times if needed
+
   try {
-    const bodyText = await req.text();
-    let parsed: any = {};
-    try {
-      parsed = JSON.parse(bodyText);
-    } catch {
-      return NextResponse.json({ error: "invalid_request", cause: "Malformed JSON payload" }, { status: 400 });
+    // Accept either JSON or plain text idToken body
+    let idToken: string | null = null;
+    const contentType = req.headers.get("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      try {
+        const { idToken: token } = await req.json();
+        idToken = token;
+      } catch {
+        // Fallback for malformed JSON
+        idToken = null;
+      }
+    } else {
+      idToken = (await req.text()).trim();
     }
-    const { idToken } = parsed;
-
+    
     if (!idToken) {
-      return NextResponse.json({ error: "missing idToken" }, { status: 400 });
+      return NextResponse.json(
+        { error: "missing idToken" },
+        { status: 400 }
+      );
     }
 
-    const auth = adminAuth();
-    let sessionValue: string;
-    let isSessionCookie = false;
-    
-    const t1 = performance.now();
+    // Attempt to create session cookie (5 days)
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+    const sessionCookie = await adminAuth().createSessionCookie(idToken, { expiresIn });
 
-    try {
-      const expiresInMs = 60 * 60 * 24 * 5 * 1000; // 5 days
-      sessionValue = await auth.createSessionCookie(idToken, { expiresIn: expiresInMs });
-      isSessionCookie = true;
-    } catch (err) {
-      console.warn("Session cookie creation failed, falling back to ID token.", err);
-      sessionValue = idToken;
-    }
-
-    const t2 = performance.now();
-
-    try {
-        if (isSessionCookie) {
-            await auth.verifySessionCookie(sessionValue, true);
-        } else {
-            await auth.verifyIdToken(sessionValue, true);
-        }
-    } catch (e: any) {
-         return NextResponse.json(
-            { error: "invalid idToken", cause: e?.message ?? String(e) },
-            { status: 401 }
-        );
-    }
-    
-    const t3 = performance.now();
-
-    const cookieStore = cookies();
-    const isProd = process.env.NODE_ENV === "production";
-    const maxAgeSeconds = isSessionCookie ? (60 * 60 * 24 * 5) : (60 * 60);
-
-    cookieStore.set("__session", sessionValue, {
+    // Set cookie (httpOnly, secure in prod)
+    const c = cookies();
+    c.set({
+      name: "__session",
+      value: sessionCookie,
       httpOnly: true,
-      secure: isProd,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: maxAgeSeconds,
+      maxAge: expiresIn / 1000,
     });
 
-    const t4 = performance.now();
-
-    console.log(`[API TIMING] /api/auth/session: createSessionCookie/fallback took ${t2-t1}ms`);
-    console.log(`[API TIMING] /api/auth/session: verify took ${t3-t2}ms`);
-    console.log(`[API TIMING] /api/auth/session: setCookies took ${t4-t3}ms`);
-    console.log(`[API TIMING] /api/auth/session: total handler took ${t4-t0}ms`);
-
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: "invalid request", cause: e?.message ?? String(e) },
-      { status: 400 }
-    );
+  } catch (err: unknown) {
+    // Fallback: verify the ID token directly to keep user logged in if session cookie creation fails
+    try {
+      let idTokenForFallback: string | null = null;
+      const contentType = reqClone.headers.get("content-type") ?? "";
+       if (contentType.includes("application/json")) {
+         try {
+           const { idToken: token } = await reqClone.json();
+           idTokenForFallback = token;
+         } catch {idTokenForFallback = null;}
+      } else {
+        idTokenForFallback = (await reqClone.text()).trim();
+      }
+
+      if (!idTokenForFallback) throw new Error("ID token unavailable for fallback.");
+
+      const decoded = await adminAuth().verifyIdToken(idTokenForFallback);
+      const c = cookies();
+      c.set({
+        name: "__session_idtoken",
+        value: idTokenForFallback, // Store the full token for server-side verification
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60, // 1h fallback, matches ID token lifetime
+      });
+      return NextResponse.json({ ok: true, fallback: true });
+    } catch (_e) {
+      const errorMessage = _e instanceof Error ? _e.message : "verify failed";
+      return NextResponse.json(
+        { error: "invalid idToken", cause: (err as Error)?.message ?? errorMessage },
+        { status: 401 }
+      );
+    }
   }
 }
 
 export async function DELETE() {
   const cookieStore = cookies();
   cookieStore.delete('__session');
+  cookieStore.delete('__session_idtoken');
   return NextResponse.json({ok: true});
 }
