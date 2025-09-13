@@ -1,4 +1,3 @@
-
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -17,7 +16,7 @@ export default function Home() {
                 thecueRoom
               </h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground md:text-xl">
-                An exclusive community for India&apos;s underground artists & DJs.
+                An exclusive community for India's underground artists & DJs.
               </p>
             </div>
             <div className="flex gap-4">
