@@ -1,7 +1,17 @@
-# thecueRoom – Supabase + GitHub Pages Patch
+# thecueRoom – Supabase Monorepo
 
-This archive provides a PR-ready set of files to migrate platform/ENV from Firebase to Supabase
-and deploy the **unchanged UI** to GitHub Pages via SSG export.
+This repository contains the Next.js web app and Supabase schema for TheCueRoom.
 
-- See `MIGRATION.md` for step-by-step.
-- Use `CODEx_PROMPT.md` to drive an agent to do code-wide replacements safely.
+## Quick Start
+
+```bash
+pnpm setup
+pnpm --filter ./apps/web dev
+```
+
+## Documentation
+
+- `DEVELOPER_GUIDE.md` – day-to-day workflows.
+- `SETUP_SUPABASE.md` – configure the local database.
+- `DEPLOYMENT.md` – deployment references.
+- `MIGRATION.md` – original Firebase-to-Supabase migration notes.
