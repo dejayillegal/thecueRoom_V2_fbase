@@ -1,72 +1,47 @@
-/* No "use server" here! It's a shared server util, not a Server Action. */
-import "server-only";
-import { App, cert, getApps, initializeApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
-import process from "node:process";
-import { Buffer } from "node:buffer";
+import * as admin from 'firebase-admin';
 
-// Cache the initialized app to avoid re-initializing on every request.
-let app: App | null = null;
-let firestoreConfigured = false;
+type TcrAdminGlobal = { app?: admin.app.App; projectId?: string; saEmail?: string };
+declare global { var __tcrAdmin__: TcrAdminGlobal | undefined }
 
-function readServiceAccount() {
-  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-  if (!b64) {
-    console.error("FIREBASE_SERVICE_ACCOUNT_B64 is missing. Falling back to default credentials.");
-    return null;
-  }
-  try {
-    const json = Buffer.from(b64, "base64").toString("utf8").trim();
-    return JSON.parse(json);
-  } catch (error) {
-    console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_B64. Falling back to default credentials.", error);
-    return null;
-  }
+function loadServiceAccount():
+  | admin.Credential
+  | null
+{
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64?.trim();
+  if (!b64) return null;
+  const json = Buffer.from(b64, 'base64').toString('utf8');
+  const obj = JSON.parse(json) as admin.ServiceAccount & { client_email?: string };
+  if (!global.__tcrAdmin__) global.__tcrAdmin__ = {};
+  global.__tcrAdmin__!.saEmail = obj.client_email;
+  return admin.credential.cert(obj);
 }
 
-export function getAdminApp(): App {
-  if (app) {
-    return app;
-  }
-
-  if (getApps().length > 0) {
-    app = getApps()[0];
-    return app!;
-  }
-
-  const serviceAccount = readServiceAccount();
-  
-  if (serviceAccount) {
-    const projectId = process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id;
-    app = initializeApp({
-      credential: cert(serviceAccount),
-      projectId,
-    });
-  } else {
-    // Fallback for GCP/Firebase hosting runtimes where GOOGLE_APPLICATION_CREDENTIALS might be set.
-    app = initializeApp();
-  }
-  
-  return app!;
+function resolveProjectId(): string | undefined {
+  return (
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.GOOGLE_CLOUD_PROJECT ||
+    process.env.GCLOUD_PROJECT
+  );
 }
 
+function init(): admin.app.App {
+  if (!global.__tcrAdmin__) global.__tcrAdmin__ = {};
+  if (global.__tcrAdmin__!.app) return global.__tcrAdmin__!.app!;
 
-export function adminAuth() {
-  return getAuth(getAdminApp());
+  const credential = loadServiceAccount() || admin.credential.applicationDefault();
+  const projectId = resolveProjectId();
+
+  const app = admin.apps.length
+    ? admin.app()
+    : admin.initializeApp({ credential, projectId });
+
+  global.__tcrAdmin__ = { app, projectId: projectId || app.options.projectId, saEmail: global.__tcrAdmin__!.saEmail };
+  return app;
 }
-export function adminDb() {
-  const db = getFirestore(getAdminApp());
-  if (!firestoreConfigured) {
-    try {
-      db.settings({ ignoreUndefinedProperties: true });
-      firestoreConfigured = true;
-    } catch (e) {
-      // This might throw if settings are already partially applied or in a weird state.
-      // We can safely ignore it in many cases, but let's log it.
-      console.warn("Could not apply Firestore settings, may already be configured.", e);
-      firestoreConfigured = true; // Mark as configured to avoid retrying.
-    }
-  }
-  return db;
-}
+
+export async function adminApp(): Promise<admin.app.App> { return init(); }
+export async function adminAuth(): Promise<admin.auth.Auth> { return admin.auth(await adminApp()); }
+export async function adminDb(): Promise<admin.firestore.Firestore> { return admin.firestore(await adminApp()); }
+
+// Optional tiny debug helper
+export function adminWhoami() { return { projectId: global.__tcrAdmin__?.projectId, saEmail: global.__tcrAdmin__?.saEmail }; }

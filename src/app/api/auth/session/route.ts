@@ -1,88 +1,62 @@
 
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { adminApp, adminAuth } from '@/lib/firebase-admin';
+
+const SESSION_COOKIE = '__session';
+const FLAG_COOKIE = 'tcr_auth';
+
+type Body = { idToken?: string; logout?: boolean };
 
 export async function POST(req: Request) {
-  const t0 = performance.now();
-  let idToken = "";
-  
-  // Accept both JSON and raw text idToken bodies
   try {
-      const ct = req.headers.get("content-type") ?? "";
-      if (ct.includes("application/json")) {
-          idToken = (await req.json()).idToken;
-      } else {
-          idToken = (await req.text()).trim();
-      }
-  } catch (error) {
-      // Ignore parsing errors if body is empty or malformed
-  }
+    const body = (await req.json().catch(() => ({}))) as Body;
 
-  if (!idToken) {
-    return NextResponse.json({ error: "missing idToken" }, { status: 400 });
-  }
+    if (body.logout) {
+      const c = cookies();
+      c.set(SESSION_COOKIE, '', { httpOnly: true, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+      c.set(FLAG_COOKIE, '', { httpOnly: false, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+      return NextResponse.json({ ok: true });
+    }
 
-  try {
-    // Primary: create a session cookie (24h)
-    const expiresIn = 24 * 60 * 60 * 1000;
-    const sessionCookie = await adminAuth().createSessionCookie(idToken, { expiresIn });
-    const t1 = performance.now();
+    const idToken = body.idToken?.trim();
+    if (!idToken) return NextResponse.json({ error: 'missing idToken' }, { status: 400 });
 
-    cookies().set({
-      name: "__session",
-      value: sessionCookie,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: expiresIn / 1000,
-    });
-    const t2 = performance.now();
-    
-    console.log(`[API TIMING] createSessionCookie took ${t1 - t0}ms`);
-    console.log(`[API TIMING] cookies().set took ${t2 - t1}ms`);
+    const app = await adminApp();
+    const projectId = app.options.projectId;
 
-    return NextResponse.json({ ok: true });
-  } catch (err: unknown) {
-     const t1_fail = performance.now();
-     console.warn(`[API TIMING] Initial session cookie creation failed after ${t1_fail - t0}ms. Error: ${(err as Error).message}. Attempting fallback.`);
-
-    // Fallback: If session cookie fails (e.g., permissions), verify the ID token directly.
+    let decoded;
     try {
-      const decoded = await adminAuth().verifyIdToken(idToken, true);
-      const t2_fallback = performance.now();
-
-      cookies().set({
-        name: "__session_idtoken", // Use a different name for the fallback
-        value: idToken, // Store the raw ID token
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60, // 1 hour (standard ID token lifetime)
-      });
-      const t3_fallback = performance.now();
-      
-      console.log(`[API TIMING] Fallback verifyIdToken took ${t2_fallback - t1_fail}ms`);
-      console.log(`[API TIMING] Fallback cookies().set took ${t3_fallback - t2_fallback}ms`);
-
-      return NextResponse.json({ ok: true, fallback: true, uid: decoded.uid });
-    } catch (fallbackErr: unknown) {
-      // If both primary and fallback fail, return the original error for debugging.
-      const finalError = (err as Error);
-      console.error(`[API ERROR] Session creation failed completely. Primary error: ${finalError.message}. Fallback error: ${(fallbackErr as Error).message}`);
+      decoded = await (await adminAuth()).verifyIdToken(idToken);
+    } catch (e: any) {
       return NextResponse.json(
-        { error: "invalid idToken", cause: finalError.message },
+        { error: 'invalid idToken', cause: e?.message, expectedProjectId: projectId },
         { status: 401 }
       );
     }
+
+    const aud = (decoded as any).aud;
+    const iss = (decoded as any).iss;
+    if (projectId && aud && !String(aud).includes(projectId)) {
+      return NextResponse.json(
+        { error: 'project mismatch', aud, iss, expectedProjectId: projectId },
+        { status: 401 }
+      );
+    }
+
+    const c = cookies();
+    c.set(SESSION_COOKIE, idToken, { httpOnly: true, secure: true, path: '/', sameSite: 'lax', maxAge: 3600 });
+    c.set(FLAG_COOKIE, '1', { httpOnly: false, secure: true, path: '/', sameSite: 'lax', maxAge: 3600 });
+
+    return NextResponse.json({ ok: true, uid: decoded.uid, email: decoded.email ?? null });
+  } catch (e: any) {
+    return NextResponse.json({ error: 'unexpected', cause: e?.message }, { status: 500 });
   }
 }
 
 export async function DELETE() {
-  const cookieStore = cookies();
-  cookieStore.delete('__session');
-  cookieStore.delete('__session_idtoken');
-  return NextResponse.json({ok: true});
+  const c = cookies();
+  c.set(SESSION_COOKIE, '', { httpOnly: true, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+  c.set(FLAG_COOKIE, '', { httpOnly: false, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+  return NextResponse.json({ ok: true });
 }
