@@ -4,7 +4,8 @@ import type { NextRequest } from 'next/server'
 const protectedRoutes = ['/dashboard', '/admin', '/settings', '/gigs', '/memes', '/genres', '/cover-art', '/news'];
 
 export function middleware(request: NextRequest) {
-  const sessionCookie = request.cookies.get('session');
+  const sessionCookie =
+    request.cookies.get('session') || request.cookies.get('__session');
   const { pathname } = request.nextUrl;
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
