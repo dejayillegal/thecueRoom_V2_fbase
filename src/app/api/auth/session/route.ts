@@ -5,8 +5,8 @@ import {adminAuth} from '@/lib/firebase-admin';
 import process from "node:process";
 
 export async function POST(req: Request) {
+  const t0 = performance.now();
   try {
-    // Parse the request body manually to handle malformed JSON gracefully.
     const bodyText = await req.text();
     let parsed: any = {};
     try {
@@ -23,24 +23,39 @@ export async function POST(req: Request) {
     const auth = adminAuth();
     let sessionValue: string;
     let decoded: any;
+    let isSessionCookie = false;
+    
+    const t1 = performance.now();
+
     try {
-      // Attempt to create a long-lived session cookie using the Admin SDK.
-      // This requires the identitytoolkit.sessions.create permission.
       const expiresInMs = 60 * 60 * 24 * 5 * 1000; // 5 days
       sessionValue = await auth.createSessionCookie(idToken, { expiresIn: expiresInMs });
-      decoded = await auth.verifySessionCookie(sessionValue, true);
+      isSessionCookie = true;
     } catch (err) {
-      // If session cookie creation fails, fall back to using the raw ID token.
-      // The cookie's TTL will match the token's expiry (1 hour).
       console.warn("Session cookie creation failed, falling back to ID token.", err);
-      decoded = await auth.verifyIdToken(idToken, true);
       sessionValue = idToken;
     }
+
+    const t2 = performance.now();
+
+    try {
+        if (isSessionCookie) {
+            decoded = await auth.verifySessionCookie(sessionValue, true);
+        } else {
+            decoded = await auth.verifyIdToken(sessionValue, true);
+        }
+    } catch (e: any) {
+         return NextResponse.json(
+            { error: "invalid idToken", cause: e?.message ?? String(e) },
+            { status: 401 }
+        );
+    }
     
+    const t3 = performance.now();
+
     const cookieStore = cookies();
     const isProd = process.env.NODE_ENV === "production";
-    // Determine expiration: 5 days for session cookie, 1 hour for ID token.
-    const maxAgeSeconds = sessionValue === idToken ? 60 * 60 : (60 * 60 * 24 * 5);
+    const maxAgeSeconds = isSessionCookie ? (60 * 60 * 24 * 5) : (60 * 60);
 
     cookieStore.set("__session", sessionValue, {
       httpOnly: true,
@@ -50,7 +65,6 @@ export async function POST(req: Request) {
       maxAge: maxAgeSeconds,
     });
 
-    // Set a client-side readable flag to help middleware.
     cookieStore.set("tcr_auth", "1", {
       httpOnly: false,
       secure: isProd,
@@ -59,11 +73,18 @@ export async function POST(req: Request) {
       maxAge: maxAgeSeconds,
     });
 
+    const t4 = performance.now();
+
+    console.log(`[API TIMING] /api/auth/session: createSessionCookie/fallback took ${t2-t1}ms`);
+    console.log(`[API TIMING] /api/auth/session: verify took ${t3-t2}ms`);
+    console.log(`[API TIMING] /api/auth/session: setCookies took ${t4-t3}ms`);
+    console.log(`[API TIMING] /api/auth/session: total handler took ${t4-t0}ms`);
+
     return NextResponse.json({ ok: true, uid: decoded.uid });
   } catch (e: any) {
     return NextResponse.json(
-      { error: "invalid idToken", cause: e?.message ?? String(e) },
-      { status: 401 }
+      { error: "invalid request", cause: e?.message ?? String(e) },
+      { status: 400 }
     );
   }
 }
