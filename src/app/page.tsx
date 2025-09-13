@@ -1,24 +1,42 @@
-// Server Component
-import { use } from "react";
+import Header from '@/components/header';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowRight, UserPlus } from 'lucide-react';
 
-type SearchParams = { monospaceUid?: string };
-
-// ✅ Next 15+ “unwrap with React.use()” pattern
-export default function Home({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const sp = use(searchParams); // do NOT enumerate the promise itself
-  const uid = sp?.monospaceUid;
-
+export default function Home() {
   return (
-    <main style={{ padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>thecueRoom</h1>
-      <p>Welcome{uid ? `, session: ${uid}` : ""}.</p>
-      <p>
-        Go to <a href="/dashboard">Dashboard</a>
-      </p>
-    </main>
+    <div className="relative min-h-screen w-full bg-background">
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--accent)/0.5),transparent)]"></div>
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <Header />
+        <main className="flex flex-1 items-center justify-center p-4">
+          <div className="flex flex-col items-center space-y-8 text-center">
+            <div className="space-y-4">
+              <h1 className="font-headline text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl">
+                thecueRoom
+              </h1>
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground md:text-xl">
+                An exclusive community for India&apos;s underground artists & DJs.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <Button size="lg" asChild>
+                <Link href="/signup">
+                  <UserPlus />
+                  Join the Community
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline">
+                <ArrowRight />
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </main>
+        <footer className="container mx-auto p-4 text-center text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} thecueRoom. All rights reserved.
+        </footer>
+      </div>
+    </div>
   );
 }
