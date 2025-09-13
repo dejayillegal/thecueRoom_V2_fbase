@@ -1,10 +1,10 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import Header from '@/components/header';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, UserPlus } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
 export default function Home() {
   return (
