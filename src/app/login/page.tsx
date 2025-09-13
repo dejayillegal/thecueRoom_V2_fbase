@@ -37,10 +37,10 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        const errorBody = await res.text();
-        throw new Error(`Session request failed: ${errorBody}`);
+        const errorBody = await res.text().catch(() => '');
+        throw new Error(`Session request failed: ${errorBody || res.status}`);
       }
-      console.debug('Login: createSession took', performance.now() - t0, 'ms');
+      console.debug('Login: createSession took', (performance.now() - t0).toFixed(1), 'ms');
   }
 
   async function afterAuth() {
@@ -50,7 +50,7 @@ export default function LoginPage() {
       }
       const t0 = performance.now();
       const idToken = await auth.currentUser.getIdToken(true);
-      console.debug('Login: Get ID token took', performance.now() - t0, 'ms');
+      console.debug('Login: Get ID token took', (performance.now() - t0).toFixed(1), 'ms');
 
       if (!idToken) throw new Error('No ID token');
       await createSession(idToken);

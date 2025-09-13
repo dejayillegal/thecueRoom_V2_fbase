@@ -17,7 +17,7 @@ type DecodedTokenWithClaims = DecodedIdToken & Claims;
 export async function requireUser() {
   const token = cookies().get("session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  const auth = adminAuth();
+  const auth = await adminAuth();
   let decoded: DecodedTokenWithClaims;
   try {
     // IMPORTANT: do NOT pass `true` for checkRevoked until IAM is fixed.

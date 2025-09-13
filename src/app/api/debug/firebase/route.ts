@@ -3,23 +3,22 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { adminApp, adminWhoami, adminAuth, adminDb } from "@/lib/firebase-admin";
+import { adminWhoami, adminAuth, adminDb } from "@/lib/firebase-admin";
 
 export async function GET() {
   try {
-    const app = adminApp(); // This is sync now
     const who = await adminWhoami();
 
     // Touch auth/db just to ensure they’re live (will throw early if misconfigured)
-    const auth = adminAuth();
+    const auth = await adminAuth();
     await auth.listUsers(1).catch(() => null);
 
-    const db = adminDb();
+    const db = await adminDb();
     await db.listCollections().catch(() => null);
 
     return NextResponse.json({
       ok: true,
-      appName: app.name,
+      appName: who.appName,
       projectId: who.projectId,
       apps: who.apps,
     });

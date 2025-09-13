@@ -3,7 +3,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
-import { getAdminApp } from "@/lib/firebase-admin";
+import { adminApp } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const app = await getAdminApp();
+    const app = await adminApp();
     const u = await getAuth(app).getUserByEmail(email);
     return NextResponse.json({ uid: u.uid, email: u.email, disabled: u.disabled, claims: u.customClaims ?? {} });
   } catch (e: any) {

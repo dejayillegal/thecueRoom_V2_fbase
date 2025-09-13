@@ -1,72 +1,65 @@
 
-// DO NOT add "use server" here; this is a shared server utility.
-// It must NOT be treated as a Server Action module.
+'use server';
+import 'server-only';
 
-import { cert, getApps, initializeApp, type App, applicationDefault } from 'firebase-admin/app';
+import { cert, getApps, initializeApp, type App, type ServiceAccount } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
-let _app: App | null = null;
-let _db: Firestore | null = null;
-let _settingsApplied = false;
+let appPromise: Promise<App> | null = null;
+let dbSingleton: Firestore | null = null;
 
-function readServiceAccount(): Record<string, unknown> | null {
-  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-  if (!b64) return null;
-  try {
-    const json = Buffer.from(b64, 'base64').toString('utf8');
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
+/**
+ * Decode service account and ensure client & server use the SAME Firebase project.
+ * Requires: FIREBASE_SERVICE_ACCOUNT_B64 (base64 of the full service account JSON)
+ */
+async function ensureApp(): Promise<App> {
+  if (appPromise) return appPromise;
+  appPromise = (async () => {
+    if (getApps().length) return getApps()[0]!;
+    const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
+    if (!b64) {
+      // Fallback for Workstations where env var might not be set, but default creds are.
+      const existing = getApps()[0];
+      if (existing) return existing;
+      try {
+        return initializeApp();
+      } catch (e) {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT_B64 env is missing and Application Default Credentials failed.');
+      }
+    }
+    const json = JSON.parse(Buffer.from(b64, 'base64').toString('utf8')) as ServiceAccount & {
+      project_id: string;
+    };
+    // project alignment happens via credential + projectId (must match web config)
+    return initializeApp({ credential: cert(json), projectId: json.project_id });
+  })();
+  return appPromise;
 }
 
-export function getAdminApp(): App {
-  if (_app) return _app;
-
-  const existing = getApps()[0];
-  if (existing) {
-    _app = existing;
-    return _app;
-  }
-
-  const svc = readServiceAccount();
-  _app = initializeApp(
-    svc
-      ? { credential: cert(svc as any) }
-      : { credential: applicationDefault() } // fallback for Workstations
-  );
-
-  return _app;
+export async function adminAuth() {
+  return getAuth(await ensureApp());
 }
 
-export function adminAuth() {
-  return getAuth(getAdminApp());
-}
-
-// Not a Server Action — just a function returning a singleton.
-export function adminDb(): Firestore {
-  if (_db) return _db;
-
-  _db = getFirestore(getAdminApp());
-  if (!_settingsApplied) {
-    // apply once; avoids "Firestore has already been initialized / settings()" spam
-    _db.settings({ ignoreUndefinedProperties: true });
-    _settingsApplied = true;
-  }
-  return _db;
+export async function adminDb(): Promise<Firestore> {
+  if (dbSingleton) return dbSingleton;
+  const db = getFirestore(await ensureApp());
+  // configure ONCE
+  db.settings({ ignoreUndefinedProperties: true });
+  dbSingleton = db;
+  return dbSingleton;
 }
 
 // Small helper to confirm wiring at /api/debug/firebase
 export async function adminWhoami() {
-  const app = getAdminApp();
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT;
-  const auth = adminAuth();
+  const app = await ensureApp();
+  const projectId = app.options.projectId;
+  const auth = await adminAuth();
   const apps = getApps().map(a => a.name);
   return { appName: app.name, projectId, authReady: !!auth, apps };
 }
 
 /** Back-compat exports (your debug route asked for these names) */
-export function adminApp(): App {
-  return getAdminApp();
+export async function adminApp(): Promise<App> {
+  return ensureApp();
 }
