@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 export const NewsItemSchema = z.object({
@@ -7,18 +6,11 @@ export const NewsItemSchema = z.object({
   source: z.string().min(2),
   category: z.string().min(2),
   region: z.string().min(2),
-  publishedAt: z.coerce.date(), // accepts string/number/Date -> Date
+  publishedAt: z.coerce.date(),
   image: z.string().url().nullable().optional(),
 });
 
 export type NewsItem = z.infer<typeof NewsItemSchema>;
 
-export const NewsSettingsSchema = z.object({
-  GLOBAL_TIMEOUT_MS: z.number().int().positive(),
-  SOURCE_TIMEOUT_MS: z.number().int().positive(),
-  FETCH_CONCURRENCY: z.number().int().min(1).max(16),
-  STALE_FALLBACK_MS: z.number().int().positive(),
-  MAX_PER_SOURCE: z.number().int().min(1).max(50),
-});
-
-export type NewsSettings = z.infer<typeof NewsSettingsSchema>;
+export type IngestNewsInput = { force?: boolean };
+export type IngestNewsOutput = { articles: NewsItem[] };
