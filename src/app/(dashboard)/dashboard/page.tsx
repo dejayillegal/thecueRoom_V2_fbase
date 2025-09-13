@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { PenSquare, Newspaper, Image as ImageIcon, Plus, Mic, MapPin, CalendarDays } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 
 const newsItems = [
   {
@@ -127,7 +127,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
                 {gigs.map((gig, index) => (
                     <Card key={index} className="flex items-center p-4 gap-4">
-                        <Image src={`https://picsum.photos/seed/${gig.image}/80/80`} alt={gig.name} width={80} height={80} className="rounded-md" data-ai-hint="techno club" />
+                        <SafeImage src={`https://picsum.photos/seed/${gig.image}/80/80`} alt={gig.name} width={80} height={80} className="rounded-md" data-ai-hint="techno club" />
                         <div className="flex-grow">
                             <h3 className="font-semibold">{gig.name}</h3>
                             <p className="text-sm text-muted-foreground">{gig.time}</p>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {newsItems.map((item, index) => (
             <Card key={index} className="p-4 flex items-start gap-4">
-               <Image src={`https://picsum.photos/seed/${item.image}/80/80`} alt={item.title} width={80} height={80} className="rounded-md" data-ai-hint="news article" />
+               <SafeImage src={`https://picsum.photos/seed/${item.image}/80/80`} alt={item.title} width={80} height={80} className="rounded-md" data-ai-hint="news article" />
               <div>
                 <h3 className="font-semibold leading-tight">{item.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">

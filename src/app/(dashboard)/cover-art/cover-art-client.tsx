@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Sparkles, ImageDown, Wand2, Download, Pilcrow } from "lucide-react";
-import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -282,7 +282,7 @@ export default function CoverArtClient() {
                     </div>
                 )}
                 {generatedImage && (
-                     <Image
+                     <SafeImage
                         src={generatedImage}
                         alt="Generated cover art"
                         fill

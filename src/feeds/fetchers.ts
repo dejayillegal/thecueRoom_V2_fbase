@@ -1,8 +1,10 @@
+
 import { XMLParser } from "fast-xml-parser";
 import removeMd from "remove-markdown";
 import type { Feed, NewsSettings } from "./config";
 import type { NewsItem } from "./types";
 import process from "node:process";
+import { normalizeUrl } from "@/lib/sanitize";
 
 const parser = new XMLParser({ ignoreAttributes:false, attributeNamePrefix:"", processEntities:true, removeNSPrefix:true });
 
@@ -47,7 +49,7 @@ function normalizeRss(xml: any, feed: Feed, max: number): NewsItem[] {
       category: feed.category,
       region: feed.region,
       publishedAt: coerceDate(it.pubDate ?? it.published ?? it.updated ?? it["dc:date"] ?? it.isoDate),
-      image: img ?? null,
+      image: normalizeUrl(img),
       summary: removeMd(String(summarySrc)).replace(/\s+/g, " ").trim().slice(0, 300) || undefined,
     };
   }).filter((i:any) => i.url && i.url.startsWith("http"));

@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from "@/lib/firebase-client";
 import { signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { normalizeUrl } from '@/lib/sanitize';
 
 
 function LogoutButton() {
@@ -199,7 +200,7 @@ export default function DashboardLayout({
                 </div>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'} />
+                      <AvatarImage src={normalizeUrl(user?.photoURL) ?? undefined} alt={user?.displayName || 'User'} />
                       <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                     <LogoutButton />

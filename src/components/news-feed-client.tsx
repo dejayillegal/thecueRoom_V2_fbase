@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from "react";
 import type { NewsItem } from "@/feeds/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import { Globe, BookOpen, Music, IndianRupee, Podcast, Library, HardHat, Waypoints, Mic2 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -82,7 +82,7 @@ export default function NewsFeedClient({ articles, categories }: { articles: New
             return (
               <div key={article.url} className="group transition-all duration-300 ease-in-out">
                 <a href={article.url} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-4 p-4 rounded-lg hover:bg-muted/50">
-                  <Image
+                  <SafeImage
                     src={imageUrl}
                     alt={article.title}
                     width={80}
