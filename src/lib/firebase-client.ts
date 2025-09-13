@@ -1,7 +1,9 @@
-import { initializeApp, getApps, FirebaseOptions } from "firebase/app";
-import { getAuth } from "firebase/auth";
 
-const firebaseConfig: FirebaseOptions = {
+// src/lib/firebase-client.ts
+import { initializeApp, getApps, FirebaseOptions } from "firebase/app";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+
+const config: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
@@ -10,12 +12,24 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
+const app = getApps()[0] ?? initializeApp(config);
+export const auth = getAuth(app);
 
+// ---- DEV HELPERS (no-op in prod builds) ----------------
 if (process.env.NODE_ENV !== "production") {
-  // Helpful sanity print during dev (API key is safe to expose on web by design)
+  // Log exactly what the client is using
+  // (shows once on first import)
   // eslint-disable-next-line no-console
-  console.log("[Firebase web config]", firebaseConfig);
+  console.debug("[firebase-client] web config", {
+    projectId: config.projectId,
+    authDomain: config.authDomain,
+    apiKeyTail: config.apiKey?.slice(-6),
+    EMULATOR: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || null,
+  });
 }
 
-const app = getApps()[0] ?? initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// If you *are* using emulator, set both client *and* server envs.
+// Otherwise DO NOT set these at all.
+if (process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST) {
+  connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`, { disableWarnings: true });
+}
