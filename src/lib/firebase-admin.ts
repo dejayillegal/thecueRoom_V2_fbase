@@ -1,4 +1,6 @@
 
+'use server';
+import "server-only";
 import * as admin from 'firebase-admin';
 
 type TcrAdminGlobal = { app?: admin.app.App; projectId?: string; saEmail?: string };
@@ -40,8 +42,8 @@ function init(): admin.app.App {
   return app;
 }
 
-export async function adminApp(): Promise<admin.app.App> { return init(); }
-export async function adminAuth(): Promise<admin.auth.Auth> { return admin.auth(await adminApp()); }
+export function adminApp(): admin.app.App { return init(); }
+export function adminAuth(): admin.auth.Auth { return admin.auth(init()); }
 export function adminDb(): admin.firestore.Firestore { return admin.firestore(init()); }
 
 

@@ -1,3 +1,7 @@
+
+'use server';
+import "server-only";
+
 import { revalidateTag } from "next/cache";
 
 export type Ok<T> = { ok: true; data: T };

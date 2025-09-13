@@ -1,3 +1,7 @@
+
+'use server';
+import "server-only";
+
 import { adminDb } from "@/lib/firebase-admin";
 import type { NewsItem } from "./types";
 
