@@ -38,15 +38,6 @@ export async function POST(req: NextRequest) {
       maxAge: expiresIn / 1000,
       domain,
     });
-    // Also set a client-readable flag
-    res.cookies.set('tcr_auth', "1", {
-      httpOnly: false,
-      secure,
-      sameSite: 'lax',
-      maxAge: expiresIn / 1000,
-      path: '/',
-      domain,
-    });
 
     return res;
   } catch (e: any) {
@@ -60,7 +51,13 @@ export async function POST(req: NextRequest) {
 export async function DELETE() {
   const domain = process.env.NEXT_COOKIE_DOMAIN || undefined;
   const res = NextResponse.json({ ok: true });
-  res.cookies.set('session', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax', domain });
-  res.cookies.set('tcr_auth', '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax', domain });
+  res.cookies.set('session', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 0,
+    sameSite: 'lax',
+    domain,
+  });
   return res;
 }

@@ -1,4 +1,3 @@
-# apphosting.yaml
 runtime: nodejs20
 build: npm run build
 entryPoint: npm run start
