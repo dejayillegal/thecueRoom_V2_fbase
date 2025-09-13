@@ -1,3 +1,4 @@
+
 import * as admin from 'firebase-admin';
 
 type TcrAdminGlobal = { app?: admin.app.App; projectId?: string; saEmail?: string };
@@ -41,7 +42,8 @@ function init(): admin.app.App {
 
 export async function adminApp(): Promise<admin.app.App> { return init(); }
 export async function adminAuth(): Promise<admin.auth.Auth> { return admin.auth(await adminApp()); }
-export async function adminDb(): Promise<admin.firestore.Firestore> { return admin.firestore(await adminApp()); }
+export function adminDb(): admin.firestore.Firestore { return admin.firestore(init()); }
+
 
 // Optional tiny debug helper
 export function adminWhoami() { return { projectId: global.__tcrAdmin__?.projectId, saEmail: global.__tcrAdmin__?.saEmail }; }

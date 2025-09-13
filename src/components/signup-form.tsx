@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Clock, UserCheck, UserPlus, RefreshCcw } from "lucide-react";
+import { Loader2, Clock, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,9 +50,11 @@ type ActionResult = {
 interface SignupFormProps {
     onGoogle: () => void;
     loading: boolean;
+    setLoading: (loading: boolean) => void;
+    afterAuth: (isVerified: boolean) => Promise<void>;
 }
 
-export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
+export default function SignupForm({ onGoogle, loading, setLoading, afterAuth }: SignupFormProps) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const { toast } = useToast();
 
@@ -67,11 +70,8 @@ export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
     },
   });
 
-  const {
-    formState: { isSubmitting },
-  } = form;
-
   const onSubmit = async (data: SignupFormValues) => {
+    setLoading(true);
     try {
       // Create user first to get a UID
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
@@ -82,13 +82,14 @@ export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
       
       if (res.status === 'success') {
          toast({ title: res.isVerified ? 'Account Verified!' : 'Application Under Review', description: res.message });
-         // The parent page will handle the redirect after session creation
+         await afterAuth(res.isVerified ?? false);
       } else {
          toast({
           variant: 'destructive',
           title: 'Signup Failed',
           description: res.message,
         });
+        setLoading(false);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
@@ -98,6 +99,7 @@ export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
         title: 'Signup Failed',
         description: errorMessage,
       });
+      setLoading(false);
     }
   };
   
@@ -229,8 +231,8 @@ export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
             />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting || loading}>
-          {isSubmitting || loading ? (
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
             <>
               <Loader2 className="animate-spin" />
               <span>Verifying...</span>
@@ -251,7 +253,7 @@ export default function SignupForm({ onGoogle, loading }: SignupFormProps) {
             <span className="bg-card px-2 text-muted-foreground">Or</span>
         </div>
       </div>
-      <Button variant="outline" onClick={onGoogle} disabled={isSubmitting || loading} className="w-full">
+      <Button variant="outline" onClick={onGoogle} disabled={loading} className="w-full">
         {loading ? <Loader2 className="animate-spin" /> : 'Sign up with Google'}
       </Button>
     </Form>

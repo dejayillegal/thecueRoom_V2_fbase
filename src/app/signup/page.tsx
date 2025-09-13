@@ -20,50 +20,31 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  async function createSession(idToken: string, maxRetries = 3) {
-    let attempt = 0;
-    let lastError = "";
-    while (attempt < maxRetries) {
-      attempt++;
-      try {
-        const res = await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-        });
-        if (!res.ok) {
-          lastError = await res.text();
-          throw new Error(`Session request failed with status ${res.status}`);
-        }
-        return;
-      } catch (err) {
-        console.error(`Session creation attempt ${attempt} failed:`, err, lastError);
-        if (attempt < maxRetries) {
-          const backoff = Math.pow(2, attempt) * 200;
-          await new Promise(res => setTimeout(res, backoff));
-          continue;
-        }
-        throw new Error(lastError || (err as Error).message || 'Failed to establish session');
-      }
+  async function createSession(idToken: string) {
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      throw new Error(`Session request failed: ${errorBody}`);
     }
   }
 
-  async function afterAuth() {
-    const t0 = performance.now();
+  async function afterAuth(isVerified: boolean) {
     try {
       if (!auth.currentUser) {
         throw new Error("No user found after authentication.");
       }
-      const idToken = await auth.currentUser.getIdToken(true);
-      const t1 = performance.now();
-      await createSession(idToken);
-      const t2 = performance.now();
-      router.replace(next);
-      const t3 = performance.now();
-
-      console.log("Signup: Get ID token took", t1 - t0, "ms");
-      console.log("Signup: createSession took", t2 - t1, "ms");
-      console.log("Signup: router.replace took", t3 - t2, "ms");
+      
+      if(isVerified) {
+        const idToken = await auth.currentUser.getIdToken(true);
+        await createSession(idToken);
+        router.replace(next);
+      }
+      // If not verified, the user sees the "under review" message and stays on the page.
       
     } catch (e: any) {
       console.error("afterAuth (signup) error:", e);
@@ -76,8 +57,10 @@ export default function SignUpPage() {
     if (loading) return;
     setLoading(true);
     try {
+      // For Google sign-up, we assume auto-verification for simplicity.
+      // A real app might have a different flow.
       await signInWithPopup(auth, new GoogleAuthProvider());
-      await afterAuth();
+      await afterAuth(true);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Google Sign-up Failed', description: e.message ?? 'An unknown error occurred.' });
     } finally {
@@ -105,7 +88,7 @@ export default function SignUpPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <SignupForm onGoogle={onGoogle} loading={loading} />
+            <SignupForm onGoogle={onGoogle} loading={loading} setLoading={setLoading} afterAuth={afterAuth} />
           </CardContent>
           <CardFooter className="flex-col gap-2 text-sm">
              <Link className="underline" href="/login">

@@ -9,12 +9,12 @@ export function middleware(req: NextRequest) {
   }
 
   // Require a session cookie
-  const hasSession =
-    req.cookies.has("__session") || req.cookies.has("__session_idtoken");
+  const hasSession = req.cookies.has("__session");
     
   if (!hasSession) {
     const url = req.nextUrl.clone();
-    const nextPath = req.nextUrl.pathname + req.nextUrl.search;
+    // Use .get() to safely access search parameters without enumeration
+    const nextPath = req.nextUrl.searchParams.get("next") || req.nextUrl.pathname;
     url.pathname = "/login";
     url.searchParams.set("next", nextPath);
     return NextResponse.redirect(url);

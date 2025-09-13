@@ -14,8 +14,8 @@ export async function POST(req: Request) {
 
     if (body.logout) {
       const c = cookies();
-      c.set(SESSION_COOKIE, '', { httpOnly: true, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
-      c.set(FLAG_COOKIE, '', { httpOnly: false, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+      c.set(SESSION_COOKIE, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
+      c.set(FLAG_COOKIE, '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
       return NextResponse.json({ ok: true });
     }
 
@@ -43,20 +43,31 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
+    
+    try {
+        const expiresIn = 24 * 60 * 60 * 1000;
+        const sessionCookie = await (await adminAuth()).createSessionCookie(idToken, { expiresIn });
+        const c = cookies();
+        c.set(SESSION_COOKIE, sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', sameSite: 'lax', maxAge: expiresIn / 1000 });
+        c.set(FLAG_COOKIE, '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', sameSite: 'lax', maxAge: expiresIn / 1000 });
 
-    const c = cookies();
-    c.set(SESSION_COOKIE, idToken, { httpOnly: true, secure: true, path: '/', sameSite: 'lax', maxAge: 3600 });
-    c.set(FLAG_COOKIE, '1', { httpOnly: false, secure: true, path: '/', sameSite: 'lax', maxAge: 3600 });
+        return NextResponse.json({ ok: true, uid: decoded.uid, email: decoded.email ?? null });
+    } catch (e: any) {
+        // This will now only catch true session cookie creation errors if token verification passed
+        return NextResponse.json(
+            { error: 'session cookie creation failed', cause: e?.message, expectedProjectId: projectId },
+            { status: 500 }
+        );
+    }
 
-    return NextResponse.json({ ok: true, uid: decoded.uid, email: decoded.email ?? null });
   } catch (e: any) {
-    return NextResponse.json({ error: 'unexpected', cause: e?.message }, { status: 500 });
+    return NextResponse.json({ error: 'unexpected error in session route', cause: e?.message }, { status: 500 });
   }
 }
 
 export async function DELETE() {
   const c = cookies();
-  c.set(SESSION_COOKIE, '', { httpOnly: true, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
-  c.set(FLAG_COOKIE, '', { httpOnly: false, secure: true, path: '/', maxAge: 0, sameSite: 'lax' });
+  c.set(SESSION_COOKIE, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
+  c.set(FLAG_COOKIE, '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
   return NextResponse.json({ ok: true });
 }
