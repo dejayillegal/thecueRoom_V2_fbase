@@ -20,7 +20,7 @@ import type { FirebaseError } from 'firebase/app';
 export default function LoginPage() {
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp?.get('next') || '/dashboard';
+  const next = React.use(sp.get('next')) || '/dashboard';
   const { toast } = useToast();
 
   const [email, setEmail] = React.useState('');
@@ -28,16 +28,19 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
 
   async function createSession(idToken: string) {
+      const t0 = performance.now();
       const res = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ idToken }),
+        credentials: 'include',
       });
 
       if (!res.ok) {
-        const body = await res.text(); // not .json() to preserve exact text
-        throw new Error(`Session request failed: ${body}`);
+        const errorBody = await res.text();
+        throw new Error(`Session request failed: ${errorBody}`);
       }
+      console.debug('Login: createSession took', performance.now() - t0, 'ms');
   }
 
   async function afterAuth() {
@@ -45,7 +48,11 @@ export default function LoginPage() {
       if (!auth.currentUser) {
         throw new Error("No user found after authentication.");
       }
+      const t0 = performance.now();
       const idToken = await auth.currentUser.getIdToken(true);
+      console.debug('Login: Get ID token took', performance.now() - t0, 'ms');
+
+      if (!idToken) throw new Error('No ID token');
       await createSession(idToken);
       router.replace(next);
     } catch (e: any) {
