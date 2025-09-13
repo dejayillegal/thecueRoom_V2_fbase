@@ -1,4 +1,3 @@
-
 /* No "use server" here! It's a shared server util, not a Server Action. */
 import "server-only";
 import { App, cert, getApps, initializeApp } from "firebase-admin/app";
@@ -26,7 +25,10 @@ function getAdminApp(): App {
     try {
       const decoded = Buffer.from(serviceAccountB64, "base64").toString("utf-8");
       const serviceAccount = JSON.parse(decoded);
-      app = initializeApp({ credential: cert(serviceAccount) });
+      app = initializeApp({
+        credential: cert(serviceAccount),
+        projectId: process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id
+      });
     } catch (err) {
       console.error("Failed to decode or parse FIREBASE_SERVICE_ACCOUNT_B64. Falling back to default credentials.", err);
       app = initializeApp();

@@ -1,16 +1,13 @@
-
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import process from "node:process";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBWGI_9AiJcGoI46E9t0pIMg8hcW1f9rkU",
-  authDomain: "studio-4685889870-4fe96.firebaseapp.com",
-  projectId: "studio-4685889870-4fe96",
-  storageBucket: "studio-4685889870-4fe96.firebasestorage.app",
-  messagingSenderId: "364717145672",
-  appId: "1:364717145672:web:a9cc2a12de9d5a9176227d"
+const firebaseConfig: FirebaseOptions = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
 

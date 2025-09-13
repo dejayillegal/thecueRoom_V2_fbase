@@ -22,7 +22,6 @@ export async function POST(req: Request) {
 
     const auth = adminAuth();
     let sessionValue: string;
-    let decoded: any;
     let isSessionCookie = false;
     
     const t1 = performance.now();
@@ -40,9 +39,9 @@ export async function POST(req: Request) {
 
     try {
         if (isSessionCookie) {
-            decoded = await auth.verifySessionCookie(sessionValue, true);
+            await auth.verifySessionCookie(sessionValue, true);
         } else {
-            decoded = await auth.verifyIdToken(sessionValue, true);
+            await auth.verifyIdToken(sessionValue, true);
         }
     } catch (e: any) {
          return NextResponse.json(
@@ -65,14 +64,6 @@ export async function POST(req: Request) {
       maxAge: maxAgeSeconds,
     });
 
-    cookieStore.set("tcr_auth", "1", {
-      httpOnly: false,
-      secure: isProd,
-      sameSite: "lax",
-      path: "/",
-      maxAge: maxAgeSeconds,
-    });
-
     const t4 = performance.now();
 
     console.log(`[API TIMING] /api/auth/session: createSessionCookie/fallback took ${t2-t1}ms`);
@@ -80,7 +71,7 @@ export async function POST(req: Request) {
     console.log(`[API TIMING] /api/auth/session: setCookies took ${t4-t3}ms`);
     console.log(`[API TIMING] /api/auth/session: total handler took ${t4-t0}ms`);
 
-    return NextResponse.json({ ok: true, uid: decoded.uid });
+    return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json(
       { error: "invalid request", cause: e?.message ?? String(e) },
@@ -92,6 +83,5 @@ export async function POST(req: Request) {
 export async function DELETE() {
   const cookieStore = cookies();
   cookieStore.delete('__session');
-  cookieStore.delete('tcr_auth');
   return NextResponse.json({ok: true});
 }

@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 
-/**
- * Seeds the database with an admin user and two test users.  Running this
- * endpoint will create or update the specified accounts and set an admin
- * custom claim on the admin user.  Note: this route should be protected
- * in production; ideally only callable via secure backend or CLI.
- */
 export async function POST() {
   try {
     const users = [
