@@ -1,7 +1,5 @@
 
-// src/lib/firebase-client.ts
-import { initializeApp, getApps, FirebaseOptions } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { initializeApp, getApps, FirebaseOptions, type FirebaseApp } from "firebase/app";
 
 const config: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -12,24 +10,39 @@ const config: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-const app = getApps()[0] ?? initializeApp(config);
-export const auth = getAuth(app);
+// Singleton to ensure we only initialize app once.
+let app: FirebaseApp | null = null;
+let appPromise: Promise<FirebaseApp> | null = null;
 
-// ---- DEV HELPERS (no-op in prod builds) ----------------
-if (process.env.NODE_ENV !== "production") {
-  // Log exactly what the client is using
-  // (shows once on first import)
-  // eslint-disable-next-line no-console
-  console.debug("[firebase-client] web config", {
-    projectId: config.projectId,
-    authDomain: config.authDomain,
-    apiKeyTail: config.apiKey?.slice(-6),
-    EMULATOR: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || null,
+export async function getFirebaseApp(): Promise<FirebaseApp> {
+  if (app) return app;
+  if (appPromise) return appPromise;
+
+  appPromise = new Promise((resolve) => {
+    if (getApps().length) {
+      app = getApps()[0]!;
+    } else {
+      app = initializeApp(config);
+    }
+    resolve(app);
+
+    // Dev-only logging to help debug config issues.
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[firebase-client] web config", {
+        projectId: config.projectId,
+        authDomain: config.authDomain,
+        apiKeyTail: config.apiKey?.slice(-6),
+        EMULATOR: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || null,
+      });
+    }
   });
+
+  return appPromise;
 }
 
-// If you *are* using emulator, set both client *and* server envs.
-// Otherwise DO NOT set these at all.
-if (process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST) {
-  connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`, { disableWarnings: true });
-}
+// Note: Do not export `auth` directly to prevent eager loading.
+// Instead, components should dynamically get the auth instance.
+// For example:
+// import { getAuth } from 'firebase/auth';
+// import { getFirebaseApp } from '@/lib/firebase-client';
+// const auth = getAuth(await getFirebaseApp());

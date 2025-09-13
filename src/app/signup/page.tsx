@@ -4,8 +4,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { auth } from '@/lib/firebase-client';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
+import { getFirebaseApp } from '@/lib/firebase-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/logo';
@@ -19,6 +19,12 @@ export default function SignUpPage() {
   const next = React.useMemo(() => sp.get('next') || '/dashboard', [sp]);
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
+
+  // Defer auth initialization until it's needed
+  const getAuthInstance = async () => {
+    const app = await getFirebaseApp();
+    return getAuth(app);
+  };
 
   async function createSession(idToken: string) {
     const res = await fetch('/api/auth/session', {
@@ -35,6 +41,7 @@ export default function SignUpPage() {
 
   async function afterAuth(isVerified: boolean) {
     try {
+      const auth = await getAuthInstance();
       if (!auth.currentUser) {
         throw new Error("No user found after authentication.");
       }
@@ -57,6 +64,7 @@ export default function SignUpPage() {
     if (loading) return;
     setLoading(true);
     try {
+      const auth = await getAuthInstance();
       // For Google sign-up, we assume auto-verification for simplicity.
       // A real app might have a different flow.
       await signInWithPopup(auth, new GoogleAuthProvider());

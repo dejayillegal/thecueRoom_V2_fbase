@@ -4,8 +4,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { auth } from '@/lib/firebase-client';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getFirebaseApp } from '@/lib/firebase-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,12 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
+  // Defer auth initialization until it's needed
+  const getAuthInstance = async () => {
+    const app = await getFirebaseApp();
+    return getAuth(app);
+  };
+
   async function createSession(idToken: string) {
       const t0 = performance.now();
       const res = await fetch('/api/auth/session', {
@@ -45,6 +51,7 @@ export default function LoginPage() {
 
   async function afterAuth() {
     try {
+      const auth = await getAuthInstance();
       if (!auth.currentUser) {
         throw new Error("No user found after authentication.");
       }
@@ -71,6 +78,7 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
     try {
+      const auth = await getAuthInstance();
       await signInWithEmailAndPassword(auth, email.trim(), password);
       await afterAuth();
     } catch (e: any) {
@@ -92,6 +100,7 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
     try {
+      const auth = await getAuthInstance();
       await signInWithPopup(auth, new GoogleAuthProvider());
       await afterAuth();
     } catch (e: any) {

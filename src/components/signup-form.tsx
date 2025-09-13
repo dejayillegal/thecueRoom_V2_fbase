@@ -23,8 +23,8 @@ import {
 import { handleSignup } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
-import { auth } from "@/lib/firebase-client";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getFirebaseApp } from "@/lib/firebase-client";
 
 const signupSchema = z.object({
   name: z.string().optional(),
@@ -69,10 +69,16 @@ export default function SignupForm({ onGoogle, loading, setLoading, afterAuth }:
       newsletter: false,
     },
   });
+  
+  const getAuthInstance = async () => {
+    const app = await getFirebaseApp();
+    return getAuth(app);
+  };
 
   const onSubmit = async (data: SignupFormValues) => {
     setLoading(true);
     try {
+      const auth = await getAuthInstance();
       // Create user first to get a UID
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       if (data.name) { await updateProfile(userCredential.user, { displayName: data.name }); }

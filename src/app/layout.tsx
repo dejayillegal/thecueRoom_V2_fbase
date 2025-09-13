@@ -30,6 +30,8 @@ export default function RootLayout({
     <html lang="en" className={cn("dark", inter.variable, sourceCodePro.variable)}>
       <head>
          <meta name="description" content="thecueRoom – a community for creators." />
+         <link rel="preconnect" href={process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN} />
+         <link rel="preconnect" href="https://www.googleapis.com" />
       </head>
       <body className="font-body antialiased">
         {children}
