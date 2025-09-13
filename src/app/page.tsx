@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, UserPlus } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export default function Home() {
   return (
     <div className="relative min-h-screen w-full bg-background">
