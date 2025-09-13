@@ -9,6 +9,7 @@ import { Buffer } from "node:buffer";
 
 // Cache the initialized app to avoid re-initializing on every request.
 let app: App | null = null;
+let firestoreConfigured = false;
 
 function getAdminApp(): App {
   if (app) {
@@ -43,6 +44,16 @@ export function adminAuth() {
 }
 export function adminDb() {
   const db = getFirestore(getAdminApp());
-  db.settings({ ignoreUndefinedProperties: true });
+  if (!firestoreConfigured) {
+    try {
+      db.settings({ ignoreUndefinedProperties: true });
+      firestoreConfigured = true;
+    } catch (e) {
+      // This might throw if settings are already partially applied or in a weird state.
+      // We can safely ignore it in many cases, but let's log it.
+      console.warn("Could not apply Firestore settings, may already be configured.", e);
+      firestoreConfigured = true; // Mark as configured to avoid retrying.
+    }
+  }
   return db;
 }
