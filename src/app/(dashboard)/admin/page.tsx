@@ -58,11 +58,15 @@ function AdminPanel() {
   });
 
   const fetchAllData = async () => {
+    const t0 = performance.now();
     try {
       const [config, feedsResult] = await Promise.all([
         getCoverArtConfig(),
         getFeeds(),
       ]);
+      const t1 = performance.now();
+      console.log("Admin Dashboard: initial data fetch took", t1 - t0, "ms");
+      
       setImageModel(config.model);
       if (feedsResult.ok) {
         setRssFeeds(feedsResult.data);

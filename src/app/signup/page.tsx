@@ -49,11 +49,22 @@ export default function SignUpPage() {
   }
 
   async function afterAuth() {
+    const t0 = performance.now();
     try {
-      if (!auth.currentUser) throw new Error("No user found after authentication.");
+      if (!auth.currentUser) {
+        throw new Error("No user found after authentication.");
+      }
       const idToken = await auth.currentUser.getIdToken(true);
+      const t1 = performance.now();
       await createSession(idToken);
+      const t2 = performance.now();
       router.replace(next);
+      const t3 = performance.now();
+
+      console.log("Signup: Get ID token took", t1 - t0, "ms");
+      console.log("Signup: createSession took", t2 - t1, "ms");
+      console.log("Signup: router.replace took", t3 - t2, "ms");
+      
     } catch (e: any) {
       console.error("afterAuth (signup) error:", e);
       toast({ variant: 'destructive', title: 'Session Error', description: 'Could not create a server session.' });

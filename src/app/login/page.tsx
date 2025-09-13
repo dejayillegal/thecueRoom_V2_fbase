@@ -59,13 +59,22 @@ export default function LoginPage() {
   }
 
   async function afterAuth() {
+    const t0 = performance.now();
     try {
       if (!auth.currentUser) {
         throw new Error("No user found after authentication.");
       }
       const idToken = await auth.currentUser.getIdToken(true);
-      await createSession(idToken);  // attempt to create session with retries
+      const t1 = performance.now();
+      await createSession(idToken);
+      const t2 = performance.now();
       router.replace(next);
+      const t3 = performance.now();
+
+      console.log("Login: Get ID token took", t1 - t0, "ms");
+      console.log("Login: createSession took", t2 - t1, "ms");
+      console.log("Login: router.replace took", t3 - t2, "ms");
+
     } catch (e: any) {
       console.error("afterAuth error:", e);
       toast({
