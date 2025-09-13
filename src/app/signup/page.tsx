@@ -16,7 +16,7 @@ import SignupForm from '@/components/signup-form';
 export default function SignUpPage() {
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp?.get('next') || '/dashboard';
+  const next = sp.get('next') || '/dashboard';
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
