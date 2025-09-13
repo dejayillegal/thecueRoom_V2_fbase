@@ -35,8 +35,8 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        const errorBody = await res.text();
-        throw new Error(`Session request failed: ${errorBody}`);
+        const body = await res.text(); // not .json() to preserve exact text
+        throw new Error(`Session request failed: ${body}`);
       }
   }
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Session Error',
-        description: 'Could not create a server session. Please try again.'
+        description: e.message ?? 'Could not create a server session. Please try again.'
       });
       setLoading(false);
     }

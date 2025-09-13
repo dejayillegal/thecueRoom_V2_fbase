@@ -28,8 +28,8 @@ export default function SignUpPage() {
     });
 
     if (!res.ok) {
-      const errorBody = await res.text();
-      throw new Error(`Session request failed: ${errorBody}`);
+      const body = await res.text(); // not .json() to preserve exact text
+      throw new Error(`Session request failed: ${body}`);
     }
   }
 
@@ -48,7 +48,7 @@ export default function SignUpPage() {
       
     } catch (e: any) {
       console.error("afterAuth (signup) error:", e);
-      toast({ variant: 'destructive', title: 'Session Error', description: 'Could not create a server session.' });
+      toast({ variant: 'destructive', title: 'Session Error', description: e.message ?? 'Could not create a server session.' });
       setLoading(false);
     }
   }

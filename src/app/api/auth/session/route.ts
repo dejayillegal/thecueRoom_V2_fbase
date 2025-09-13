@@ -1,73 +1,78 @@
 
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { adminApp, adminAuth } from '@/lib/firebase-admin';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const SESSION_COOKIE = '__session';
-const FLAG_COOKIE = 'tcr_auth';
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { adminAuth } from "@/lib/firebase-admin";
 
-type Body = { idToken?: string; logout?: boolean };
+type Ok = { ok: true; fallback?: boolean };
+type Err = { error: string; cause?: string };
+
+function json(data: Ok | Err, init?: number | ResponseInit) {
+  return NextResponse.json(data, typeof init === "number" ? { status: init } : init);
+}
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as Body;
+    // Read ONCE
+    const ct = headers().get("content-type") ?? "";
+    const raw = await req.text();
+    let idToken = "";
 
-    if (body.logout) {
-      const c = cookies();
-      c.set(SESSION_COOKIE, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
-      c.set(FLAG_COOKIE, '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
-      return NextResponse.json({ ok: true });
+    if (ct.includes("application/json")) {
+      try {
+        const parsed = JSON.parse(raw || "{}");
+        idToken = (parsed?.idToken as string) || "";
+      } catch {
+        return json({ error: "invalid JSON" }, 400);
+      }
+    } else {
+      idToken = raw.trim();
     }
 
-    const idToken = body.idToken?.trim();
-    if (!idToken) return NextResponse.json({ error: 'missing idToken' }, { status: 400 });
-
-    const app = await adminApp();
-    const projectId = app.options.projectId;
-
-    let decoded;
-    try {
-      decoded = await (await adminAuth()).verifyIdToken(idToken);
-    } catch (e: any) {
-      return NextResponse.json(
-        { error: 'invalid idToken', cause: e?.message, expectedProjectId: projectId },
-        { status: 401 }
-      );
+    if (!idToken) {
+      return json({ error: "missing idToken" }, 400);
     }
 
-    const aud = (decoded as any).aud;
-    const iss = (decoded as any).iss;
-    if (projectId && aud && !String(aud).includes(projectId)) {
-      return NextResponse.json(
-        { error: 'project mismatch', aud, iss, expectedProjectId: projectId },
-        { status: 401 }
-      );
-    }
+    // Create a session cookie (24h)
+    const expiresIn = 24 * 60 * 60 * 1000;
+    const cookie = await adminAuth().createSessionCookie(idToken, { expiresIn });
+
+    const c = cookies();
+    c.set({
+      name: "__session",
+      value: cookie,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: expiresIn / 1000,
+    });
     
-    try {
-        const expiresIn = 24 * 60 * 60 * 1000;
-        const sessionCookie = await (await adminAuth()).createSessionCookie(idToken, { expiresIn });
-        const c = cookies();
-        c.set(SESSION_COOKIE, sessionCookie, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', sameSite: 'lax', maxAge: expiresIn / 1000 });
-        c.set(FLAG_COOKIE, '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', sameSite: 'lax', maxAge: expiresIn / 1000 });
+    // Also set a client-readable flag
+    c.set({
+      name: "tcr_auth",
+      value: "1",
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: expiresIn / 1000,
+    });
 
-        return NextResponse.json({ ok: true, uid: decoded.uid, email: decoded.email ?? null });
-    } catch (e: any) {
-        // This will now only catch true session cookie creation errors if token verification passed
-        return NextResponse.json(
-            { error: 'session cookie creation failed', cause: e?.message, expectedProjectId: projectId },
-            { status: 500 }
-        );
-    }
-
-  } catch (e: any) {
-    return NextResponse.json({ error: 'unexpected error in session route', cause: e?.message }, { status: 500 });
+    return json({ ok: true });
+  } catch (e: unknown) {
+    // Make failures explicit & debuggable (no 'INTERNAL' surprises)
+    const msg = e instanceof Error ? e.message : String(e);
+    // Common case: project mismatch -> 'Firebase ID token has incorrect "aud"...'
+    return json({ error: "unexpected error in session route", cause: msg }, 500);
   }
 }
 
 export async function DELETE() {
   const c = cookies();
-  c.set(SESSION_COOKIE, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
-  c.set(FLAG_COOKIE, '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
+  c.set("__session", '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
+  c.set("tcr_auth", '', { httpOnly: false, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0, sameSite: 'lax' });
   return NextResponse.json({ ok: true });
 }
