@@ -1,7 +1,4 @@
 
-'use server';
-import "server-only";
-
 // IMPORTANT: Do NOT put "use server" in this file.
 // This file is a plain Node helper module used by server routes.
 
@@ -25,7 +22,7 @@ function readServiceAccount(): Record<string, unknown> {
   }
 }
 
-export async function getAdminApp(): Promise<App> {
+export function getAdminApp(): App {
   if (_app) return _app;
   const sa = readServiceAccount();
   const projectId = process.env.FIREBASE_PROJECT_ID || (sa as any).project_id;
@@ -34,19 +31,19 @@ export async function getAdminApp(): Promise<App> {
   return _app;
 }
 
-export async function adminAuth(): Promise<Auth> {
-  return getAuth(await getAdminApp());
+export function adminAuth(): Auth {
+  return getAuth(getAdminApp());
 }
 
-export async function adminDb(): Promise<Firestore> {
+export function adminDb(): Firestore {
   if (_db) return _db;
-  const db = getFirestore(await getAdminApp());
+  const db = getFirestore(getAdminApp());
   if (!_dbSettingsApplied) {
     db.settings({ ignoreUndefinedProperties: true }); // apply ONCE
     _dbSettingsApplied = true;
   }
   _db = db;
-  return _db;
+  return db;
 }
 
 /** Back-compat exports (your debug route asked for these names) */
