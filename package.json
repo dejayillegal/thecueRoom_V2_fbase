@@ -9,6 +9,7 @@
     "build": "pnpm -w --filter ./apps/web build",
     "typecheck": "echo \"skip (depends on repo)\"",
     "lint": "echo \"skip (depends on repo)\"",
-    "test": "echo \"skip (depends on repo)\""
+    "test": "echo \"skip (depends on repo)\"",
+    "setup": "bash scripts/setup.sh"
   }
 }
