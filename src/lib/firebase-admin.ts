@@ -1,4 +1,3 @@
-
 // IMPORTANT: Do NOT put "use server" in this file.
 // This file is a plain Node helper module used by server routes.
 
@@ -43,7 +42,7 @@ export function adminDb(): Firestore {
     _dbSettingsApplied = true;
   }
   _db = db;
-  return db;
+  return _db;
 }
 
 /** Back-compat exports (your debug route asked for these names) */
