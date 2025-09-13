@@ -1,17 +1,40 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+ 
+const protectedRoutes = ['/dashboard', '/admin', '/settings', '/gigs', '/memes', '/genres', '/cover-art', '/news'];
 
-export function middleware(req: NextRequest) {
-  // Example: check a cookie you set on sign-in
-  const hasSession = req.cookies.get("__session");
-  if (req.nextUrl.pathname === "/" && hasSession) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
+export function middleware(request: NextRequest) {
+  const sessionCookie = request.cookies.get('session');
+  const { pathname } = request.nextUrl;
+
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+  if (isProtectedRoute && !sessionCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = `next=${pathname}`;
     return NextResponse.redirect(url);
   }
+ 
+  if (pathname === '/' && sessionCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }
-
+ 
 export const config = {
-  matcher: ["/"],
-};
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - login, signup, reset-password (auth pages)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|reset-password).*)',
+  ],
+}
