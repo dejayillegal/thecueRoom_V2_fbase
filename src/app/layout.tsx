@@ -1,42 +1,15 @@
-import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
-import './globals.css';
-import { Inter, Source_Code_Pro } from 'next/font/google';
-import { cn } from '@/lib/utils';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
-const sourceCodePro = Source_Code_Pro({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-source-code-pro',
-});
+// Server Component
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'thecueRoom v2',
-  description: 'An exclusive community for India\'s underground artists & DJs.',
+  title: "thecueRoom",
+  description: "Underground music dashboard",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("dark", inter.variable, sourceCodePro.variable)}>
-      <head>
-         <meta name="description" content="thecueRoom – a community for creators." />
-         <link rel="preconnect" href={process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN} />
-         <link rel="preconnect" href="https://www.googleapis.com" />
-      </head>
-      <body className="font-body antialiased">
-        {children}
-        <Toaster />
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }
