@@ -20,7 +20,7 @@ import type { FirebaseError } from 'firebase/app';
 export default function LoginPage() {
   const router = useRouter();
   const sp = useSearchParams();
-  const next = sp.get('next') || '/dashboard';
+  const next = React.useMemo(() => sp.get('next') || '/dashboard', [sp]);
   const { toast } = useToast();
 
   const [email, setEmail] = React.useState('');

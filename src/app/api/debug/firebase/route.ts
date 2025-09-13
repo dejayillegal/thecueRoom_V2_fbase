@@ -7,14 +7,14 @@ import { adminApp, adminWhoami, adminAuth, adminDb } from "@/lib/firebase-admin"
 
 export async function GET() {
   try {
-    const app = await adminApp();
+    const app = adminApp(); // This is sync now
     const who = await adminWhoami();
 
     // Touch auth/db just to ensure they’re live (will throw early if misconfigured)
-    const auth = await adminAuth();
+    const auth = adminAuth();
     await auth.listUsers(1).catch(() => null);
 
-    const db = await adminDb();
+    const db = adminDb();
     await db.listCollections().catch(() => null);
 
     return NextResponse.json({

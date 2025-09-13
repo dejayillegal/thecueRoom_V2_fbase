@@ -1,3 +1,4 @@
+
 // DO NOT add "use server" here; this is a shared server utility.
 // It must NOT be treated as a Server Action module.
 
@@ -51,7 +52,7 @@ export function adminDb(): Firestore {
   if (!_settingsApplied) {
     // apply once; avoids "Firestore has already been initialized / settings()" spam
     _db.settings({ ignoreUndefinedProperties: true });
-    _settingslied = true;
+    _settingsApplied = true;
   }
   return _db;
 }
@@ -61,7 +62,8 @@ export async function adminWhoami() {
   const app = getAdminApp();
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT;
   const auth = adminAuth();
-  return { appName: app.name, projectId, authReady: !!auth };
+  const apps = getApps().map(a => a.name);
+  return { appName: app.name, projectId, authReady: !!auth, apps };
 }
 
 /** Back-compat exports (your debug route asked for these names) */

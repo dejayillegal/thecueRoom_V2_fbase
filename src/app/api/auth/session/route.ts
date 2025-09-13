@@ -19,14 +19,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing idToken' }, { status: 400 });
     }
 
-    // Verify ID token belongs to the SAME project used by the Admin SDK.
     const auth = adminAuth();
-    await auth.verifyIdToken(idToken, true);
+    // ⬇️ No revocation check until IAM is fixed
+    await auth.verifyIdToken(idToken, false);
 
     const expiresIn = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
     const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
 
-    // Attach cookie
     const domain = process.env.NEXT_COOKIE_DOMAIN || undefined;
     const secure =
       process.env.NEXT_COOKIE_SECURE === 'true' ||

@@ -15,16 +15,18 @@ interface Claims {
 type DecodedTokenWithClaims = DecodedIdToken & Claims;
 
 export async function requireUser() {
-  const token = cookies().get("__session")?.value;
+  const token = cookies().get("session")?.value;
   if (!token) throw new Error("Unauthenticated");
-  const auth = await adminAuth();
+  const auth = adminAuth();
   let decoded: DecodedTokenWithClaims;
   try {
-    decoded = await auth.verifySessionCookie(token, true) as DecodedTokenWithClaims;
+    // IMPORTANT: do NOT pass `true` for checkRevoked until IAM is fixed.
+    decoded = await auth.verifySessionCookie(token, false) as DecodedTokenWithClaims;
   } catch {
     // Fall back to verifying the ID token. This covers cases where the
     // session was stored as a raw ID token (e.g. createSessionCookie failed).
-    decoded = await auth.verifyIdToken(token, true) as DecodedTokenWithClaims;
+    // IMPORTANT: do NOT pass `true` for checkRevoked until IAM is fixed.
+    decoded = await auth.verifyIdToken(token, false) as DecodedTokenWithClaims;
   }
   return { uid: decoded.uid, email: decoded.email, claims: decoded };
 }
