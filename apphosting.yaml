@@ -1,3 +1,6 @@
+runtime: nodejs20
+build: npm run build
+entryPoint: npm run start
 runConfig:
   minInstances: 1
   maxInstances: 2
@@ -28,6 +31,3 @@ runConfig:
       value: "${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}"
     - variable: NEXT_PUBLIC_FIREBASE_APP_ID
       value: "${NEXT_PUBLIC_FIREBASE_APP_ID}"
-runtime: nodejs20
-build: npm run build
-entryPoint: npm run start
