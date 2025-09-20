@@ -1,20 +1,26 @@
 {
-  "name": "thecueroom-web",
+  "name": "@thecueroom/web",
   "private": true,
+  "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "serve -s out -l 4173"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.0",
-    "next": "14.2.5",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "@supabase/supabase-js": "2.45.3",
+    "next": "15.4.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/react": "19.1.13",
-    "serve": "^14.2.3",
-    "typescript": "^5.5.4"
+    "@types/node": "20.16.5",
+    "@types/react": "18.3.5",
+    "@types/react-dom": "18.3.0",
+    "eslint": "8.57.1",
+    "eslint-config-next": "15.4.7",
+    "typescript": "5.6.3"
   }
 }

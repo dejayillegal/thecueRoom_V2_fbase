@@ -1,15 +1,20 @@
 {
   "name": "thecueroom-monorepo",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "type": "module",
+  "packageManager": "npm@10.8.2",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "build": "pnpm -w --filter ./apps/web build",
-    "typecheck": "echo \"skip (depends on repo)\"",
-    "lint": "echo \"skip (depends on repo)\"",
-    "test": "echo \"skip (depends on repo)\"",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash ./scripts/local-setup.sh",
+    "dev": "bash ./scripts/dev.sh",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "react-native": "0.74.4"
   }
 }
