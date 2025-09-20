@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ vars.NODE_VERSION || 20.19.5 }}
+          node-version: ${{ vars.NODE_VERSION || '20.19.5' }}
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
