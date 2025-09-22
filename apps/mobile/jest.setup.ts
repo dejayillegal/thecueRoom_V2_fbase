@@ -1,5 +1,6 @@
 import '@testing-library/jest-native/extend-expect';
 import 'react-native-gesture-handler/jestSetup';
+import process from 'node:process';
 
 process.env.EXPO_PUBLIC_SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://example-project.supabase.co';
