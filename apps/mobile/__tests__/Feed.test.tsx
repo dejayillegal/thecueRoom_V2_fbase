@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react-native';
-import { FeedScreen } from '../src/screens/Feed';
+import { FeedScreen } from '../src/screens/Feed.tsx';
 
 describe('FeedScreen', () => {
   it('shows the feed header', () => {
