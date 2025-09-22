@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      pages_enabled: ${{ steps.pages-status.outputs.enabled }}
+      pages_enabled: ${{ steps.pages_status.outputs.enabled }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
           npm run build --workspace @thecueroom/web
 
       - name: Check GitHub Pages status
-        id: pages-status
+        id: pages_status
         uses: actions/github-script@v7
         with:
           script: |
@@ -71,11 +71,11 @@ jobs:
             }
 
       - name: Setup Pages
-        if: steps.pages-status.outputs.enabled == 'true'
+        if: steps.pages_status.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        if: steps.pages-status.outputs.enabled == 'true'
+        if: steps.pages_status.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: "apps/web/out"
